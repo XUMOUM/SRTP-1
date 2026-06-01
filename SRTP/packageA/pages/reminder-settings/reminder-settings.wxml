@@ -1,0 +1,128 @@
+<view class="settings-container">
+  <!-- 振动提醒设置 -->
+  <view class="setting-item">
+    <view class="setting-left">
+      <view class="setting-icon">📳</view>
+      <text class="setting-text">振动提醒</text>
+    </view>
+    <switch class="setting-switch" checked="{{vibrationEnabled}}" bindchange="toggleVibration" color="#667eea" />
+  </view>
+
+  <!-- 服务通知提醒 -->
+  <view class="setting-item">
+    <view class="setting-left">
+      <view class="setting-icon">🔔</view>
+      <text class="setting-text">服务通知提醒</text>
+    </view>
+    <switch class="setting-switch" checked="{{notificationEnabled}}" bindchange="toggleNotification" color="#667eea" />
+  </view>
+
+  <!-- 引导横幅（未开启通知时显示） -->
+  <view class="guide-banner" wx:if="{{!notificationEnabled}}">
+    <text class="guide-banner-text">🔔 开启服务通知，不错过每次用药提醒</text>
+  </view>
+
+  <!-- 授权状态提示 -->
+  <view class="auth-tip" wx:if="{{notificationEnabled && !hasSubscribed}}">
+    <view class="tip-content">
+      <text class="tip-icon">⚠️</text>
+      <text class="tip-text">您还未授权接收通知，点击下方按钮授权</text>
+    </view>
+    <button class="auth-btn" bindtap="subscribeNotification">立即授权</button>
+  </view>
+
+  <!-- 已授权提示 -->
+  <view class="auth-success" wx:if="{{notificationEnabled && hasSubscribed}}">
+    <view class="success-content">
+      <text class="success-icon">✅</text>
+      <text class="success-text">已授权接收用药通知</text>
+    </view>
+  </view>
+
+  <!-- 通知说明 -->
+  <view class="notification-desc" wx:if="{{notificationEnabled}}">
+    <text class="desc-title">📌 说明</text>
+    <text class="desc-text">• 每次用药提醒都会通过微信服务通知发送</text>
+    <text class="desc-text">• 点击通知可直接进入提醒页面</text>
+    <text class="desc-text">• 如需关闭，可点击上方开关或在小程序设置中操作</text>
+  </view>
+
+  <!-- 铃声选择 -->
+  <view class="setting-item" bindtap="showRingtonePicker">
+    <view class="setting-left">
+      <view class="setting-icon">🎵</view>
+      <text class="setting-text">提醒铃声</text>
+    </view>
+    <view class="setting-right">
+      <text class="setting-desc">{{selectedRingtone}}</text>
+      <text class="setting-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 上传自定义铃声 -->
+  <view class="setting-item" bindtap="uploadCustomRingtone">
+    <view class="setting-left">
+      <view class="setting-icon">📤</view>
+      <text class="setting-text">上传自定义铃声</text>
+    </view>
+    <view class="setting-right">
+      <text class="setting-desc">选择本地音频文件</text>
+      <text class="setting-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 自定义铃声管理 -->
+  <view class="custom-ringtone-section" wx:if="{{customRingtones.length > 0}}">
+    <view class="section-title">自定义铃声</view>
+    <view class="custom-ringtone-list">
+      <view class="custom-ringtone-item {{item.selected ? 'selected' : ''}}" 
+            wx:for="{{customRingtones}}" 
+            wx:key="id"
+            bindtap="selectCustomRingtone"
+            data-ringtone="{{item}}">
+        <view class="custom-ringtone-left">
+          <text class="custom-ringtone-name">{{item.name}}</text>
+          <text class="custom-ringtone-duration">{{item.duration}}秒</text>
+        </view>
+        <view class="custom-ringtone-right">
+          <text class="custom-ringtone-check" wx:if="{{item.selected}}">✓</text>
+          <text class="custom-ringtone-delete" bindtap="deleteCustomRingtone" data-id="{{item.id}}">×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 铃声预览区域 -->
+  <view class="preview-section" wx:if="{{showPreview}}">
+    <text class="preview-title">铃声预览</text>
+    <view class="preview-controls">
+      <button class="preview-btn {{isPlaying ? 'playing' : ''}}" bindtap="playRingtone">
+        {{isPlaying ? '停止' : '播放当前铃声'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 铃声选择弹窗 -->
+  <view class="modal" wx:if="{{showRingtoneModal}}">
+    <view class="modal-mask" bindtap="hideRingtoneModal"></view>
+    <view class="modal-content ringtone-modal">
+      <view class="modal-header">
+        <text class="modal-title">选择铃声</text>
+      </view>
+      <view class="modal-body ringtone-list">
+        <view class="ringtone-item {{item.selected ? 'selected' : ''}}" 
+              wx:for="{{ringtones}}" 
+              wx:key="id"
+              bindtap="selectRingtone"
+              data-ringtone="{{item}}">
+          <text class="ringtone-name">{{item.name}}</text>
+          <text class="ringtone-check" wx:if="{{item.selected}}">✓</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideRingtoneModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmRingtone">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

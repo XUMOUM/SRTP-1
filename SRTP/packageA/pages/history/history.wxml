@@ -1,0 +1,124 @@
+<wxs src="./history.wxs" module="utils" />
+
+<view class="history-container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载记录中...</text>
+  </view>
+
+  <view wx:else>
+    <!-- 统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-header">
+        <text class="stats-title">30天用药统计</text>
+        <view class="stats-info-btn" bindtap="showStatsDetail">详情 ></view>
+      </view>
+      
+      <view class="stats-grid">
+        <view class="stat-item">
+          <text class="stat-value">{{stats.completionRate}}%</text>
+          <text class="stat-label">完成率</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.completedMeds}}</text>
+          <text class="stat-label">完成次数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.missedMeds}}</text>
+          <text class="stat-label">漏服次数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.currentStreak}}</text>
+          <text class="stat-label">连续天数</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 趋势图表 -->
+    <view class="chart-card">
+      <view class="chart-header">
+        <text class="chart-title">每日完成趋势</text>
+      </view>
+      
+      <!-- 简易柱状图 -->
+      <view class="chart-container">
+        <view class="chart-y-axis">
+          <text>100%</text>
+          <text>75%</text>
+          <text>50%</text>
+          <text>25%</text>
+          <text>0%</text>
+        </view>
+        <view class="chart-bars">
+          <view class="chart-bar-item" 
+                wx:for="{{dailyRecords}}" 
+                wx:key="date"
+                bindtap="selectDate"
+                data-index="{{index}}">
+            <view class="bar-wrapper">
+              <!-- 使用 WXS 函数生成样式，避免内联 {{}} 语法 -->
+              <view class="bar-fill" style="{{utils.getBarStyle(item.rate)}}"></view>
+            </view>
+            <text class="bar-label">{{item.date.slice(5)}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 日期选择器 -->
+    <view class="date-picker-card">
+      <picker mode="selector" 
+              range="{{dailyRecords}}" 
+              range-key="displayDate"
+              value="{{utils.findDateIndex(dailyRecords, selectedDate)}}"
+              bindchange="selectDate">
+        <view class="picker-display">
+          <text class="picker-label">{{selectedDayDetail ? selectedDayDetail.date : ''}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+      
+      <view class="date-nav">
+        <view class="nav-btn" bindtap="changeDate" data-direction="prev">〈 前一天</view>
+        <view class="nav-btn" bindtap="changeDate" data-direction="next">后一天 〉</view>
+      </view>
+    </view>
+
+    <!-- 选中日期的详情 -->
+    <view class="detail-card" wx:if="{{selectedDayDetail}}">
+      <view class="detail-header">
+        <text class="detail-date">{{selectedDayDetail.date}} {{selectedDayDetail.dayOfWeek}}</text>
+        <!-- 使用 WXS 函数获取颜色类 -->
+        <text class="detail-rate {{utils.getRateClass(selectedDayDetail.rate)}}">
+          完成率 {{selectedDayDetail.rate}}%
+        </text>
+      </view>
+      
+      <view class="medicines-list">
+        <view class="medicine-item" wx:for="{{selectedDayDetail.medicines}}" wx:key="id">
+          <view class="medicine-time">
+            <text class="time-text">{{item.time}}</text>
+          </view>
+          <view class="medicine-info">
+            <view class="medicine-name-row">
+              <text class="medicine-name">{{item.name}}</text>
+              <text class="medicine-dosage">{{item.dosage}}</text>
+            </view>
+            <text class="medicine-instruction" wx:if="{{item.instruction}}">{{item.instruction}}</text>
+          </view>
+          <view class="medicine-status {{item.completed ? 'completed' : 'missed'}}">
+            <text wx:if="{{item.completed}}">✓ 已服</text>
+            <text wx:else>○ 未服</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="empty-tip" wx:if="{{stats.totalMeds === 0}}">
+      <text class="tip-icon">📝</text>
+      <text class="tip-text">暂无用药记录，快去添加用药提醒吧！</text>
+    </view>
+  </view>
+</view>

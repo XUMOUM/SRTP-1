@@ -1,0 +1,67 @@
+<view class="lock-container">
+  <!-- 背景装饰 -->
+  <view class="lock-bg">
+    <view class="bg-circle circle1"></view>
+    <view class="bg-circle circle2"></view>
+  </view>
+  
+  <!-- 主要内容 -->
+  <view class="lock-content">
+    <!-- 图标和标题 -->
+    <view class="lock-header">
+      <view class="lock-icon">🔒</view>
+      <text class="lock-title">请输入密码</text>
+      <text class="lock-subtitle">用药提醒小程序已锁屏</text>
+    </view>
+    
+    <!-- 密码显示区域 -->
+    <view class="password-display">
+      <block wx:for="{{6}}" wx:key="index">
+        <view class="password-dot {{inputPassword.length > index ? 'filled' : ''}}"></view>
+      </block>
+    </view>
+    
+    <!-- 错误提示 -->
+    <view class="error-message" wx:if="{{errorMessage}}">
+      <text class="error-text">{{errorMessage}}</text>
+    </view>
+    
+    <!-- 数字键盘 -->
+    <view class="number-keyboard" wx:if="{{lockType === 'pin'}}">
+      <view class="keyboard-row">
+        <view class="key-btn" bindtap="onKeyPress" data-key="1">1</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="2">2</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="3">3</view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn" bindtap="onKeyPress" data-key="4">4</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="5">5</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="6">6</view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn" bindtap="onKeyPress" data-key="7">7</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="8">8</view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="9">9</view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn empty"></view>
+        <view class="key-btn" bindtap="onKeyPress" data-key="0">0</view>
+        <view class="key-btn delete" bindtap="onDelete">⌫</view>
+      </view>
+    </view>
+    
+    <!-- 图形密码键盘（后续扩展） -->
+    <view class="pattern-keyboard" wx:if="{{lockType === 'pattern'}}">
+      <canvas class="pattern-canvas" canvas-id="patternCanvas" 
+              bindtouchstart="onPatternTouchStart"
+              bindtouchmove="onPatternTouchMove"
+              bindtouchend="onPatternTouchEnd"></canvas>
+    </view>
+    
+    <!-- 底部按钮 -->
+    <view class="lock-footer">
+      <view class="footer-btn" bindtap="forgotPassword">忘记密码？</view>
+      <view class="footer-btn" bindtap="switchAccount">切换账号</view>
+    </view>
+  </view>
+</view>

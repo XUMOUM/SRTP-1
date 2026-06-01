@@ -1,0 +1,172 @@
+<view class="edit-container">
+  <!-- 头像区域 -->
+  <view class="avatar-section" bindtap="chooseAvatar">
+    <image class="avatar" src="{{avatarUrl || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill"></image>
+    <view class="avatar-edit">
+      <text class="edit-icon">📷</text>
+      <text class="edit-text">点击更换头像</text>
+    </view>
+  </view>
+  
+  <!-- 用户ID显示（不可编辑） -->
+  <view class="info-item id-item">
+    <view class="info-label">
+      <text class="label-icon">🆔</text>
+      <text class="label-text">用户ID</text>
+    </view>
+    <view class="info-value id-value">
+      <text class="id-text">{{userId || '未生成'}}</text>
+      <button class="copy-btn" bindtap="copyUserId">复制</button>
+    </view>
+  </view>
+  
+  <!-- 昵称 -->
+  <view class="info-item">
+    <view class="info-label">
+      <text class="label-icon">👤</text>
+      <text class="label-text">昵称</text>
+    </view>
+    <input class="info-input" value="{{nickName}}" placeholder="请输入昵称" bindinput="onNickNameInput" maxlength="20" />
+  </view>
+  
+  <!-- 性别 -->
+  <view class="info-item">
+    <view class="info-label">
+      <text class="label-icon">⚥</text>
+      <text class="label-text">性别</text>
+    </view>
+    <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
+      <view class="picker-display">
+        <text>{{genderOptions[genderIndex]}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+  
+  <!-- 生日 -->
+  <view class="info-item">
+    <view class="info-label">
+      <text class="label-icon">🎂</text>
+      <text class="label-text">生日</text>
+    </view>
+    <picker mode="date" value="{{birthday}}" start="1900-01-01" end="{{currentDate}}" bindchange="onBirthdayChange">
+      <view class="picker-display">
+        <text>{{birthday || '请选择生日'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+  
+  <!-- 手机号 -->
+  <view class="info-item">
+    <view class="info-label">
+      <text class="label-icon">📱</text>
+      <text class="label-text">手机号</text>
+    </view>
+    <view class="info-value">
+      <text class="phone-text" wx:if="{{phoneNumber}}">{{phoneNumber}}</text>
+      <button class="phone-btn" wx:else open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">授权获取手机号</button>
+    </view>
+  </view>
+
+  <!-- ===== 健康档案区块 ===== -->
+
+  <!-- 过敏史 -->
+  <view class="health-section">
+    <view class="health-header">
+      <text class="health-icon">🤧</text>
+      <text class="health-title">过敏史</text>
+    </view>
+    <view class="health-tags">
+      <view class="health-tag {{allergies.indexOf(item) >= 0 ? 'tag-selected' : ''}}"
+            wx:for="{{allergyOptions}}" wx:key="*this"
+            data-item="{{item}}"
+            bindtap="toggleAllergyOption">{{item}}</view>
+    </view>
+    <view class="health-custom-row">
+      <input class="health-input" value="{{allergyInput}}" placeholder="其他过敏原" bindinput="onAllergyInput" />
+      <button class="health-add-btn" bindtap="addAllergy">添加</button>
+    </view>
+    <view class="health-selected" wx:if="{{allergies.length > 0}}">
+      <view class="selected-item" wx:for="{{allergies}}" wx:key="*this">
+        <text class="selected-text">{{item}}</text>
+        <text class="selected-remove" bindtap="removeAllergy" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+    <view class="health-empty" wx:elif="{{allergies.length === 0}}">
+      <text class="health-empty-text">未记录过敏史</text>
+    </view>
+  </view>
+
+  <!-- 慢性病史 -->
+  <view class="health-section">
+    <view class="health-header">
+      <text class="health-icon">🏥</text>
+      <text class="health-title">慢性病史</text>
+    </view>
+    <view class="health-tags">
+      <view class="health-tag {{chronicDiseases.indexOf(item) >= 0 ? 'tag-selected' : ''}}"
+            wx:for="{{chronicOptions}}" wx:key="*this"
+            data-item="{{item}}"
+            bindtap="toggleChronicOption">{{item}}</view>
+    </view>
+    <view class="health-custom-row">
+      <input class="health-input" value="{{chronicInput}}" placeholder="其他慢性病" bindinput="onChronicInput" />
+      <button class="health-add-btn" bindtap="addChronic">添加</button>
+    </view>
+    <view class="health-selected" wx:if="{{chronicDiseases.length > 0}}">
+      <view class="selected-item" wx:for="{{chronicDiseases}}" wx:key="*this">
+        <text class="selected-text">{{item}}</text>
+        <text class="selected-remove" bindtap="removeChronic" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+    <view class="health-empty" wx:elif="{{chronicDiseases.length === 0}}">
+      <text class="health-empty-text">未记录慢性病史</text>
+    </view>
+  </view>
+
+  <!-- 手术史 -->
+  <view class="health-section">
+    <view class="health-header">
+      <text class="health-icon">🔪</text>
+      <text class="health-title">手术史</text>
+    </view>
+    <view class="health-custom-row">
+      <input class="health-input" value="{{surgeryInput}}" placeholder="输入手术名称" bindinput="onSurgeryInput" />
+      <button class="health-add-btn" bindtap="addSurgery">添加</button>
+    </view>
+    <view class="health-selected" wx:if="{{surgeries.length > 0}}">
+      <view class="selected-item surgery-item" wx:for="{{surgeries}}" wx:key="id">
+        <view class="surgery-left">
+          <text class="selected-text">{{item.name}}</text>
+          <picker mode="date" value="{{item.time}}" end="{{currentDate}}" bindchange="onSurgeryTimeChange" data-index="{{index}}">
+            <view class="surgery-time">{{item.time || '选择手术时间'}}</view>
+          </picker>
+        </view>
+        <text class="selected-remove" bindtap="removeSurgery" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+    <view class="health-empty" wx:elif="{{surgeries.length === 0}}">
+      <text class="health-empty-text">未记录手术史</text>
+    </view>
+  </view>
+
+  <!-- 特殊状态 -->
+  <view class="info-item">
+    <view class="info-label">
+      <text class="label-icon">👶</text>
+      <text class="label-text">特殊状态</text>
+    </view>
+    <picker mode="selector" range="{{specialStatusOptions}}" value="{{specialStatusIndex}}" bindchange="onSpecialStatusChange">
+      <view class="picker-display">
+        <text>{{specialStatusOptions[specialStatusIndex]}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-section">
+    <button class="save-btn" bindtap="saveProfile" disabled="{{!canSave}}">保存个人信息</button>
+  </view>
+</view>

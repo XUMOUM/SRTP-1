@@ -1,0 +1,181 @@
+.lock-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 背景装饰 */
+.lock-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bg-circle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.circle1 {
+  width: 400rpx;
+  height: 400rpx;
+  top: -100rpx;
+  right: -100rpx;
+}
+
+.circle2 {
+  width: 300rpx;
+  height: 300rpx;
+  bottom: -50rpx;
+  left: -50rpx;
+}
+
+/* 主要内容 */
+.lock-content {
+  position: relative;
+  width: 100%;
+  padding: 40rpx;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.lock-header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  color: white;
+}
+
+.lock-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  animation: pulse 2s infinite;
+}
+
+.lock-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.lock-subtitle {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.8;
+}
+
+/* 密码显示区域 */
+.password-display {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.password-dot {
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.password-dot.filled {
+  background: white;
+  border-color: white;
+  box-shadow: 0 0 20rpx rgba(255, 255, 255, 0.8);
+}
+
+/* 错误提示 */
+.error-message {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.error-text {
+  color: #fed7d7;
+  font-size: 26rpx;
+  background: rgba(245, 101, 101, 0.2);
+  padding: 15rpx 30rpx;
+  border-radius: 40rpx;
+}
+
+/* 数字键盘 */
+.number-keyboard {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20rpx);
+  border-radius: 40rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20rpx;
+}
+
+.keyboard-row:last-child {
+  margin-bottom: 0;
+}
+
+.key-btn {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.key-btn:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0.95);
+}
+
+.key-btn.empty {
+  background: transparent;
+  pointer-events: none;
+}
+
+.key-btn.delete {
+  font-size: 40rpx;
+}
+
+/* 底部按钮 */
+.lock-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 30rpx;
+}
+
+.footer-btn {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 26rpx;
+  padding: 20rpx;
+}
+
+.footer-btn:active {
+  opacity: 0.7;
+}
+
+/* 动画 */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}

@@ -1,0 +1,172 @@
+<wxs src="./supervise.wxs" module="utils" />
+
+<view class="supervise-container">
+  <!-- 头部添加好友按钮 -->
+  <view class="supervise-header">
+    <view class="header-title">
+      <text class="title-main">好友监管</text>
+      <text class="title-sub">关注亲友用药情况</text>
+    </view>
+    <button class="add-friend-btn" bindtap="showAddFriendModal">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加好友</text>
+    </button>
+  </view>
+
+  <!-- 空状态 - 暂无好友 -->
+  <view class="empty-state" wx:if="{{friends.length === 0}}">
+    <view class="empty-icon">👥</view>
+    <text class="empty-text">当前暂无好友</text>
+    <text class="empty-hint">点击上方按钮添加好友，关注他们的用药情况</text>
+  </view>
+
+  <!-- 好友列表 - 垂直布局，每个好友一个卡片 -->
+  <view class="friends-list-vertical" wx:if="{{friends.length > 0}}">
+    <view class="friend-card" wx:for="{{friends}}" wx:key="id" data-id="{{item.id}}">
+      <!-- 好友卡片头部 - 点击可展开/折叠 -->
+      <view class="friend-card-header" bindtap="toggleFriend" data-id="{{item.id}}">
+        <image class="friend-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="friend-info">
+          <view class="friend-name-row">
+            <text class="friend-name">{{item.name}}</text>
+            <view class="friend-status-dot {{utils.getStatusClass(item.status)}}"></view>
+            <text class="friend-status-text">{{utils.getStatusText(item.status)}}</text>
+          </view>
+          <view class="friend-progress-row">
+            <view class="progress-text-small">
+              <text>今日完成 {{item.todayCompleted}}/{{item.todayTotal}}</text>
+            </view>
+            <view class="progress-bar-small">
+              <view class="progress-fill-small" style="width: {{utils.getProgressWidth(item.todayCompleted, item.todayTotal)}};"></view>
+            </view>
+          </view>
+          <text class="friend-last-active">最后活跃：{{utils.formatLastActive(item.lastActive)}}</text>
+        </view>
+        <view class="expand-icon">
+          <text class="expand-arrow">{{expandedFriendId === item.id ? '▼' : '▶'}}</text>
+        </view>
+      </view>
+
+      <!-- 展开的详细用药计划 - 只展开当前选中的好友 -->
+      <view class="friend-detail-expand" wx:if="{{expandedFriendId === item.id}}">
+        <!-- 今日用药列表 -->
+        <view class="medicines-list">
+          <view class="medicine-card" wx:for="{{item.medicines}}" wx:key="index">
+            <view class="medicine-time">
+              <text class="time-text">{{item.time}}</text>
+            </view>
+            <view class="medicine-info">
+              <view class="medicine-name-row">
+                <text class="medicine-name">{{item.name}}</text>
+                <view class="medicine-status {{item.completed ? 'completed' : 'pending'}}">
+                  {{item.completed ? '已服用' : '待服用'}}
+                </view>
+              </view>
+              <view class="medicine-details">
+                <text class="medicine-dosage">{{item.dosage}}</text>
+                <text class="medicine-instruction" wx:if="{{item.instruction}}"> · {{item.instruction}}</text>
+              </view>
+              <view class="medicine-marked" wx:if="{{item.completed}}">
+                <text class="marked-label">服用时间</text>
+                <text class="marked-time">{{item.markedTime}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 鼓励语 -->
+        <view class="encouragement-small">
+          <text class="encouragement-text">{{utils.getEncouragement(item.todayCompleted, item.todayTotal)}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加好友弹窗 -->
+  <view class="modal" wx:if="{{showAddFriendModal}}">
+    <view class="modal-mask" bindtap="hideAddFriendModal"></view>
+    <view class="modal-content add-friend-modal">
+      <view class="modal-header">
+        <text class="modal-title">添加好友</text>
+      </view>
+      
+      <!-- 标签切换 -->
+      <view class="tab-bar">
+        <view class="tab-item {{currentTab === 'search' ? 'active' : ''}}" 
+              bindtap="switchTab" data-tab="search">搜索用户</view>
+        <view class="tab-item {{currentTab === 'requests' ? 'active' : ''}}" 
+              bindtap="switchTab" data-tab="requests">
+          好友请求
+          <text class="badge" wx:if="{{pendingRequests.length > 0}}">{{pendingRequests.length}}</text>
+        </view>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 搜索用户标签页 -->
+        <view wx:if="{{currentTab === 'search'}}">
+          <view class="search-box">
+            <input class="search-input" 
+                   placeholder="输入用户ID/手机号/昵称" 
+                   value="{{searchKeyword}}"
+                   bindinput="onSearchInput" />
+            <button class="search-btn" bindtap="searchUser">搜索</button>
+          </view>
+          
+          <view class="search-results">
+            <view class="result-item" wx:for="{{searchResults}}" wx:key="_openid">
+              <image class="result-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+              <view class="result-info">
+                <text class="result-name">{{item.nickName}}</text>
+                <text class="result-id">ID: {{item.userId}}</text>
+              </view>
+              <view class="result-status">
+                <text wx:if="{{item.isFriend}}" class="status-text friend">已是好友</text>
+                <text wx:elif="{{item.hasPendingRequest}}" class="status-text pending">已发送请求</text>
+                <text wx:elif="{{item.hasReceivedRequest}}" class="status-text received">待处理</text>
+                <button wx:else class="add-btn-small" 
+                        bindtap="sendFriendRequest" 
+                        data-userid="{{item._openid}}"
+                        data-nick="{{item.nickName}}">添加</button>
+              </view>
+            </view>
+            <view class="empty-result" wx:if="{{searchResults.length === 0 && searchKeyword}}">
+              未找到相关用户
+            </view>
+          </view>
+        </view>
+        
+        <!-- 好友请求标签页 -->
+        <view wx:if="{{currentTab === 'requests'}}">
+          <view class="request-list">
+            <view class="request-item" wx:for="{{pendingRequests}}" wx:key="_id">
+              <image class="request-avatar" src="{{item.fromUserInfo.avatarUrl}}"></image>
+              <view class="request-info">
+                <text class="request-name">{{item.fromUserInfo.nickName}}</text>
+                <text class="request-id">ID: {{item.fromUserInfo.userId}}</text>
+                <text class="request-message">{{item.message}}</text>
+              </view>
+              <view class="request-actions">
+                <button class="action-btn accept" 
+                        bindtap="handleFriendRequest" 
+                        data-requestid="{{item._id}}"
+                        data-action="accept">同意</button>
+                <button class="action-btn reject" 
+                        bindtap="handleFriendRequest" 
+                        data-requestid="{{item._id}}"
+                        data-action="reject">拒绝</button>
+              </view>
+            </view>
+            <view class="empty-result" wx:if="{{pendingRequests.length === 0}}">
+              暂无好友请求
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn confirm" bindtap="hideAddFriendModal">关 闭</button>
+      </view>
+    </view>
+  </view>
+</view>
+<!-- 结束标签：对应最开头的 <view class="supervise-container"> -->

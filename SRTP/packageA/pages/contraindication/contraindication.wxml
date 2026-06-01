@@ -1,0 +1,71 @@
+<view class="contra-container">
+  <!-- 顶部搜索添加区域 -->
+  <view class="search-section">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" 
+             placeholder="搜索禁忌（如：糖尿病、高血压）" 
+             value="{{searchKeyword}}"
+             bindinput="onSearchInput"
+             bindconfirm="searchContraindication" />
+      <button class="search-btn" bindtap="searchContraindication">搜索</button>
+    </view>
+    
+    <!-- 搜索结果下拉 -->
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view class="result-item" 
+            wx:for="{{searchResults}}" 
+            wx:key="index"
+            bindtap="addContraindication"
+            data-name="{{item.name}}"
+            data-desc="{{item.description}}">
+        <text class="result-name">{{item.name}}</text>
+        <text class="result-desc">{{item.description}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 我的禁忌列表 -->
+  <view class="contra-list-section">
+    <view class="section-header">
+      <text class="section-title">我的禁忌</text>
+      <text class="section-count">{{myContraindications.length}}项</text>
+    </view>
+    
+    <view class="contra-list">
+      <view class="contra-item" wx:for="{{myContraindications}}" wx:key="id">
+        <view class="contra-info">
+          <text class="contra-name">{{item.name}}</text>
+          <text class="contra-desc">{{item.description}}</text>
+        </view>
+        <view class="contra-actions">
+          <button class="delete-btn" bindtap="deleteContraindication" data-id="{{item.id}}">删除</button>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{myContraindications.length === 0}}">
+        <text class="empty-icon">⚠️</text>
+        <text class="empty-text">暂无禁忌项</text>
+        <text class="empty-hint">搜索并添加您的健康禁忌</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 用药禁忌分析入口 -->
+  <view class="analysis-section" bindtap="navigateToAnalysis">
+    <view class="analysis-card">
+      <view class="analysis-left">
+        <text class="analysis-icon">🔬</text>
+      </view>
+      <view class="analysis-center">
+        <text class="analysis-title">用药禁忌分析</text>
+        <text class="analysis-desc">查看当前药品与您禁忌的冲突</text>
+      </view>
+      <view class="analysis-right">
+        <text class="analysis-badge" wx:if="{{conflictCount > 0}}">{{conflictCount}}</text>
+        <text class="analysis-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

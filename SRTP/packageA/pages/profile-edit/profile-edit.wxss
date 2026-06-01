@@ -1,0 +1,306 @@
+.edit-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 30rpx;
+}
+
+/* 头像区域 */
+.avatar-section {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  border: 4rpx solid #667eea;
+}
+
+.avatar-edit {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 15rpx 30rpx;
+  background: #f8fafc;
+  border-radius: 40rpx;
+}
+
+.edit-icon {
+  font-size: 28rpx;
+}
+
+.edit-text {
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+/* 信息项 */
+.info-item {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.id-item {
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  border-left: 6rpx solid #667eea;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  width: 140rpx;
+}
+
+.label-icon {
+  font-size: 32rpx;
+  margin-right: 10rpx;
+}
+
+.label-text {
+  font-size: 28rpx;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.info-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.id-text {
+  font-size: 28rpx;
+  color: #2d3748;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.copy-btn {
+  background: #edf2ff;
+  color: #667eea;
+  font-size: 22rpx;
+  padding: 8rpx 25rpx;
+  border-radius: 30rpx;
+  border: none;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.info-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #2d3748;
+  text-align: right;
+  padding: 10rpx 0;
+}
+
+.picker-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15rpx;
+  font-size: 28rpx;
+  color: #2d3748;
+}
+
+.picker-arrow {
+  font-size: 24rpx;
+  color: #a0aec0;
+}
+
+/* 保存按钮 */
+.save-section {
+  margin-top: 50rpx;
+  padding: 0 30rpx;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 30rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  width: 100%;
+}
+
+.save-btn[disabled] {
+  opacity: 0.5;
+  background: #cbd5e0;
+}
+
+/* ===== 健康档案样式 ===== */
+.health-section {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.health-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #f1f5f9;
+}
+
+.health-icon {
+  font-size: 32rpx;
+  margin-right: 10rpx;
+}
+
+.health-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.health-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-bottom: 16rpx;
+}
+
+.health-tag {
+  font-size: 24rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  background: #f8fafc;
+  color: #4a5568;
+  border: 2rpx solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.health-tag:active {
+  transform: scale(0.96);
+}
+
+.health-tag.tag-selected {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.health-custom-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.health-input {
+  flex: 1;
+  height: 70rpx;
+  border: 2rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.health-add-btn {
+  flex-shrink: 0;
+  background: #667eea;
+  color: white;
+  font-size: 24rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  padding: 0 30rpx;
+  border-radius: 12rpx;
+  border: none;
+  margin: 0;
+}
+
+.health-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.selected-item {
+  display: flex;
+  align-items: center;
+  background: #edf2ff;
+  padding: 8rpx 10rpx 8rpx 20rpx;
+  border-radius: 30rpx;
+  gap: 10rpx;
+}
+
+.selected-text {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.selected-remove {
+  font-size: 24rpx;
+  color: #f56565;
+  padding: 6rpx;
+  font-weight: bold;
+}
+
+.surgery-item {
+  border-radius: 16rpx;
+  padding: 12rpx 10rpx 12rpx 20rpx;
+}
+
+.surgery-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.surgery-time {
+  font-size: 22rpx;
+  color: #a0aec0;
+  padding: 4rpx 12rpx;
+  background: #f8fafc;
+  border-radius: 8rpx;
+}
+
+.health-empty {
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.health-empty-text {
+  font-size: 24rpx;
+  color: #cbd5e0;
+}
+
+.phone-text {
+  font-size: 28rpx;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.phone-btn {
+  background: #edf2ff;
+  color: #667eea;
+  font-size: 24rpx;
+  padding: 8rpx 25rpx;
+  border-radius: 30rpx;
+  border: none;
+  margin: 0;
+  line-height: 1.5;
+}

@@ -1,0 +1,341 @@
+.history-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 30rpx;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 统计卡片 */
+.stats-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.stats-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.stats-info-btn {
+  font-size: 26rpx;
+  color: #667eea;
+  padding: 10rpx 20rpx;
+  background: #edf2ff;
+  border-radius: 30rpx;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  display: block;
+  font-size: 24rpx;
+  color: #718096;
+}
+
+/* 图表卡片 */
+.chart-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.chart-header {
+  margin-bottom: 30rpx;
+}
+
+.chart-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.chart-container {
+  display: flex;
+  height: 300rpx;
+}
+
+.chart-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 80rpx;
+  font-size: 20rpx;
+  color: #a0aec0;
+  text-align: right;
+  padding-right: 20rpx;
+}
+
+.chart-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.chart-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  margin: 0 4rpx;
+}
+
+.bar-wrapper {
+  width: 60%;
+  height: 240rpx;
+  background: #f1f5f9;
+  border-radius: 8rpx 8rpx 0 0;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 10rpx;
+}
+
+.bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, #667eea, #9f7aea);
+  border-radius: 8rpx 8rpx 0 0;
+  transition: height 0.3s ease;
+}
+
+.bar-label {
+  font-size: 20rpx;
+  color: #718096;
+  transform: rotate(-30deg);
+  white-space: nowrap;
+}
+
+/* 日期选择卡片 */
+.date-picker-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.picker-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  border: 2rpx solid #e2e8f0;
+  margin-bottom: 20rpx;
+}
+
+.picker-label {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.picker-arrow {
+  font-size: 28rpx;
+  color: #a0aec0;
+}
+
+.date-nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.nav-btn {
+  padding: 20rpx 40rpx;
+  background: #f8fafc;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  color: #4a5568;
+  border: 2rpx solid #e2e8f0;
+}
+
+.nav-btn:active {
+  background: #edf2f7;
+}
+
+/* 详情卡片 */
+.detail-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #f1f5f9;
+  margin-bottom: 20rpx;
+}
+
+.detail-date {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.detail-rate {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.medicines-list {
+  margin-top: 10rpx;
+}
+
+.medicine-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f8fafc;
+}
+
+.medicine-item:last-child {
+  border-bottom: none;
+}
+
+.medicine-time {
+  width: 100rpx;
+}
+
+.time-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.medicine-info {
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.medicine-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.medicine-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #2d3748;
+  margin-right: 15rpx;
+}
+
+.medicine-dosage {
+  font-size: 24rpx;
+  color: #718096;
+}
+
+.medicine-instruction {
+  font-size: 22rpx;
+  color: #a0aec0;
+}
+
+.medicine-status {
+  width: 100rpx;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+.medicine-status.completed {
+  color: #48bb78;
+}
+
+.medicine-status.missed {
+  color: #f56565;
+}
+
+/* 空状态提示 */
+.empty-tip {
+  background: white;
+  border-radius: 20rpx;
+  padding: 80rpx 30rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.tip-icon {
+  display: block;
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.tip-text {
+  font-size: 28rpx;
+  color: #a0aec0;
+}
+/* 添加到 history.wxss 文件中 */
+
+/* 完成率颜色类 */
+.rate-high {
+  color: #48bb78;
+}
+
+.rate-medium {
+  color: #ecc94b;
+}
+
+.rate-low {
+  color: #f56565;
+}

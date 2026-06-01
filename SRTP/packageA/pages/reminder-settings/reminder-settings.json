@@ -1,0 +1,8 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "提醒设置",
+  "navigationBarBackgroundColor": "#4a90e2",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": false,
+  "backgroundColor": "#f5f7fa"
+}

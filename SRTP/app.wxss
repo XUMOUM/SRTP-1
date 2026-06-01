@@ -1,0 +1,14 @@
+/**app.wxss**/
+/* 移除或修改这个全局样式，因为它会影响所有页面的.container */
+/* 改为更具体的类名，比如 .app-container */
+.app-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+}
+
+/* 如果其他地方用了.container，需要一并修改 */

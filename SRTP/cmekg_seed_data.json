@@ -1,0 +1,649 @@
+{
+  "_comment": "CMeKG 知识图谱种子数据 - 常见药物禁忌与相互作用",
+  "_usage": "在微信云开发数据库中创建集合 cme_kg_medicines，导入此数据即可使用",
+  "medicines": [
+    {
+      "name": "阿司匹林肠溶片",
+      "aliases": ["阿司匹林", "Aspirin", "乙酰水杨酸"],
+      "category": "解热镇痛抗炎药",
+      "contraindications": {
+        "diseases": ["胃溃疡", "十二指肠溃疡", "消化道出血", "血友病", "严重肝病", "严重肾病", "痛风"],
+        "allergies": ["阿司匹林", "水杨酸类"],
+        "pregnancy": "孕晚期禁用",
+        "note": "有胃病史者慎用，建议饭后服用"
+      },
+      "interactions": [
+        { "target_drug": "布洛芬", "risk_level": "中", "mechanism": "同属NSAIDs，合用增加胃肠道出血风险", "advice": "避免同时使用，间隔至少6小时" },
+        { "target_drug": "华法林", "risk_level": "高", "mechanism": "阿司匹林增强华法林抗凝作用，出血风险升高", "advice": "如需合用应监测INR值" },
+        { "target_drug": "甲氨蝶呤", "risk_level": "高", "mechanism": "阿司匹林减少甲氨蝶呤排泄，增加毒性", "advice": "避免合用" },
+        { "target_drug": "糖皮质激素", "risk_level": "中", "mechanism": "增加胃肠道溃疡和出血风险", "advice": "合用需加用胃黏膜保护剂" },
+        { "target_drug": "胰岛素", "risk_level": "低", "mechanism": "大剂量阿司匹林增强降糖作用", "advice": "监测血糖，必要时调整胰岛素剂量" }
+      ],
+      "sideEffects": ["胃肠道不适", "恶心", "出血倾向", "过敏反应"]
+    },
+    {
+      "name": "布洛芬",
+      "aliases": ["芬必得", "Ibuprofen", "异丁苯丙酸"],
+      "category": "解热镇痛抗炎药",
+      "contraindications": {
+        "diseases": ["胃溃疡", "消化道出血", "严重心脏病", "严重肝病", "严重肾病"],
+        "allergies": ["布洛芬", "NSAIDs"],
+        "pregnancy": "孕晚期禁用",
+        "note": "不宜长期使用，饭后服用可减轻胃肠道刺激"
+      },
+      "interactions": [
+        { "target_drug": "阿司匹林", "risk_level": "中", "mechanism": "同属NSAIDs，合用增加胃肠道出血风险", "advice": "避免同时使用" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用，增加出血风险", "advice": "监测凝血功能" },
+        { "target_drug": "ACEI类降压药（普利类）", "risk_level": "中", "mechanism": "降低降压效果，增加肾损伤风险", "advice": "监测血压和肾功能" },
+        { "target_drug": "利尿剂", "risk_level": "中", "mechanism": "降低利尿效果", "advice": "监测液体平衡" }
+      ],
+      "sideEffects": ["胃肠道不适", "头痛", "眩晕", "皮疹"]
+    },
+    {
+      "name": "对乙酰氨基酚",
+      "aliases": ["扑热息痛", "泰诺", "Paracetamol", "Acetaminophen"],
+      "category": "解热镇痛药",
+      "contraindications": {
+        "diseases": ["严重肝病", "重度酒精性肝病"],
+        "allergies": ["对乙酰氨基酚"],
+        "pregnancy": "可安全使用",
+        "note": "每天不超过2g，过量可致肝损伤"
+      },
+      "interactions": [
+        { "target_drug": "酒精", "risk_level": "中", "mechanism": "增加肝毒性风险", "advice": "服药期间避免饮酒" },
+        { "target_drug": "卡马西平", "risk_level": "中", "mechanism": "增强对乙酰氨基酚代谢，降低疗效并增加肝毒性", "advice": "监测肝功能" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" }
+      ],
+      "sideEffects": ["胃肠道不适（较少见）", "皮疹（罕见）"]
+    },
+    {
+      "name": "头孢克肟",
+      "aliases": ["Cefixime", "世福素", "氨噻肟烯头孢菌素"],
+      "category": "头孢菌素类抗生素",
+      "contraindications": {
+        "diseases": ["严重肾功能不全"],
+        "allergies": ["头孢菌素", "青霉素（交叉过敏约10%）"],
+        "pregnancy": "相对安全",
+        "note": "青霉素过敏者慎用"
+      },
+      "interactions": [
+        { "target_drug": "酒精", "risk_level": "高", "mechanism": "双硫仑样反应（面红、心悸、呕吐）", "advice": "服药期间及停药后一周内禁酒" },
+        { "target_drug": "利尿剂（呋塞米）", "risk_level": "中", "mechanism": "增加肾毒性", "advice": "监测肾功能" },
+        { "target_drug": "抗凝药", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测凝血功能" }
+      ],
+      "sideEffects": ["腹泻", "恶心", "皮疹", "肝功能异常"]
+    },
+    {
+      "name": "阿莫西林",
+      "aliases": ["Amoxicillin", "羟氨苄青霉素"],
+      "category": "青霉素类抗生素",
+      "contraindications": {
+        "diseases": ["传染性单核细胞增多症"],
+        "allergies": ["青霉素", "头孢菌素（交叉过敏可能）"],
+        "pregnancy": "可安全使用",
+        "note": "必须做皮试"
+      },
+      "interactions": [
+        { "target_drug": "甲氨蝶呤", "risk_level": "高", "mechanism": "减少甲氨蝶呤排泄，增加毒性", "advice": "避免合用" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "口服避孕药", "risk_level": "低", "mechanism": "降低避孕药效果", "advice": "服药期间加用避孕措施" }
+      ],
+      "sideEffects": ["腹泻", "皮疹", "恶心", "过敏反应"]
+    },
+    {
+      "name": "阿奇霉素",
+      "aliases": ["希舒美", "Azithromycin"],
+      "category": "大环内酯类抗生素",
+      "contraindications": {
+        "diseases": ["严重肝病", "心律失常（QT间期延长）"],
+        "allergies": ["大环内酯类"],
+        "pregnancy": "慎用",
+        "note": "有心脏疾病者慎用"
+      },
+      "interactions": [
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "地高辛", "risk_level": "中", "mechanism": "增加地高辛浓度", "advice": "监测地高辛血药浓度" },
+        { "target_drug": "抗心律失常药（胺碘酮等）", "risk_level": "中", "mechanism": "增加QT间期延长风险", "advice": "避免合用或监测ECG" }
+      ],
+      "sideEffects": ["胃肠道不适", "腹泻", "腹痛", "味觉异常"]
+    },
+    {
+      "name": "左氧氟沙星",
+      "aliases": ["Levofloxacin", "可乐必妥", "左克"],
+      "category": "喹诺酮类抗生素",
+      "contraindications": {
+        "diseases": ["癫痫", "肌腱损伤病史", "重症肌无力", "QT间期延长"],
+        "allergies": ["喹诺酮类"],
+        "pregnancy": "禁用",
+        "note": "18岁以下禁用，引起肌腱损伤风险"
+      },
+      "interactions": [
+        { "target_drug": "NSAIDs", "risk_level": "中", "mechanism": "增加中枢神经系统刺激和癫痫发作风险", "advice": "避免合用" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测凝血功能" },
+        { "target_drug": "胰岛素/口服降糖药", "risk_level": "中", "mechanism": "引起血糖波动", "advice": "监测血糖" },
+        { "target_drug": "含铝镁抗酸药", "risk_level": "高", "mechanism": "显著降低左氧氟沙星吸收", "advice": "间隔至少2小时服用" }
+      ],
+      "sideEffects": ["恶心", "腹泻", "头晕", "失眠", "光敏反应"]
+    },
+    {
+      "name": "甲硝唑",
+      "aliases": ["灭滴灵", "Metronidazole"],
+      "category": "硝基咪唑类抗菌药",
+      "contraindications": {
+        "diseases": ["严重肝病", "中枢神经系统疾病"],
+        "allergies": ["硝基咪唑类"],
+        "pregnancy": "孕早期禁用",
+        "note": "服药期间禁酒"
+      },
+      "interactions": [
+        { "target_drug": "酒精", "risk_level": "高", "mechanism": "双硫仑样反应（剧烈腹痛、呕吐、心悸）", "advice": "服药期间及停药后3天禁止饮酒" },
+        { "target_drug": "华法林", "risk_level": "高", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "苯妥英钠", "risk_level": "中", "mechanism": "增加苯妥英钠浓度", "advice": "监测血药浓度" }
+      ],
+      "sideEffects": ["金属味觉", "恶心", "头痛", "尿色加深"]
+    },
+    {
+      "name": "降压药",
+      "aliases": ["氨氯地平", "络活喜", "Amlodipine"],
+      "category": "钙通道阻滞剂",
+      "contraindications": {
+        "diseases": ["严重低血压", "严重主动脉瓣狭窄"],
+        "allergies": ["二氢吡啶类"],
+        "pregnancy": "慎用",
+        "note": "规律服用，不可突然停药"
+      },
+      "interactions": [
+        { "target_drug": "β受体阻滞剂", "risk_level": "中", "mechanism": "协同降压，过度降压风险", "advice": "监测血压" },
+        { "target_drug": "葡萄柚汁", "risk_level": "中", "mechanism": "增加氨氯地平血药浓度", "advice": "避免大量饮用葡萄柚汁" },
+        { "target_drug": "克拉霉素", "risk_level": "中", "mechanism": "增加氨氯地平浓度", "advice": "监测血压" },
+        { "target_drug": "利福平", "risk_level": "中", "mechanism": "降低降压效果", "advice": "调整剂量" }
+      ],
+      "sideEffects": ["踝部水肿", "头痛", "面红", "心悸"]
+    },
+    {
+      "name": "二甲双胍",
+      "aliases": ["Metformin", "格华止", "盐酸二甲双胍"],
+      "category": "降糖药（双胍类）",
+      "contraindications": {
+        "diseases": ["严重肾衰竭", "严重肝病", "心力衰竭", "严重感染", "酮症酸中毒"],
+        "allergies": ["二甲双胍"],
+        "pregnancy": "禁用",
+        "note": "肾功能异常者禁用，造影检查前需暂停"
+      },
+      "interactions": [
+        { "target_drug": "对比剂（碘造影剂）", "risk_level": "高", "mechanism": "增加乳酸酸中毒风险", "advice": "造影前停用48小时" },
+        { "target_drug": "酒精", "risk_level": "中", "mechanism": "增加乳酸酸中毒风险", "advice": "限制饮酒" },
+        { "target_drug": "噻嗪类利尿剂", "risk_level": "低", "mechanism": "影响血糖控制", "advice": "监测血糖" }
+      ],
+      "sideEffects": ["胃肠道不适", "腹泻", "恶心", "味觉异常", "维生素B12缺乏"]
+    },
+    {
+      "name": "华法林",
+      "aliases": ["Warfarin", "可迈丁"],
+      "category": "抗凝血药",
+      "contraindications": {
+        "diseases": ["消化道出血", "颅内出血", "严重高血压", "肝病", "出血倾向"],
+        "allergies": ["华法林"],
+        "pregnancy": "禁用（致畸）",
+        "note": "定期监测INR，避免维生素K含量高的食物"
+      },
+      "interactions": [
+        { "target_drug": "阿司匹林", "risk_level": "高", "mechanism": "协同抗凝，出血风险显著增高", "advice": "避免合用" },
+        { "target_drug": "布洛芬", "risk_level": "高", "mechanism": "增加出血风险", "advice": "避免合用" },
+        { "target_drug": "甲硝唑", "risk_level": "高", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "头孢类抗生素", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "维生素K", "risk_level": "高", "mechanism": "拮抗华法林作用，降低疗效", "advice": "避免大量食用富含维生素K的食物" }
+      ],
+      "sideEffects": ["出血倾向", "皮肤坏死", "脱发"]
+    },
+    {
+      "name": "氯吡格雷",
+      "aliases": ["Clopidogrel", "波立维", "硫酸氢氯吡格雷"],
+      "category": "抗血小板药",
+      "contraindications": {
+        "diseases": ["消化道出血", "颅内出血", "严重肝病"],
+        "allergies": ["氯吡格雷"],
+        "pregnancy": "慎用",
+        "note": "手术前需停药5-7天"
+      },
+      "interactions": [
+        { "target_drug": "阿司匹林", "risk_level": "中", "mechanism": "协同抗血小板作用，增加出血风险", "advice": "遵医嘱使用，监测出血" },
+        { "target_drug": "奥美拉唑", "risk_level": "中", "mechanism": "降低氯吡格雷疗效", "advice": "改用泮托拉唑或雷贝拉唑" },
+        { "target_drug": "华法林", "risk_level": "高", "mechanism": "显著增加出血风险", "advice": "避免合用" }
+      ],
+      "sideEffects": ["出血", "腹泻", "腹痛", "皮疹"]
+    },
+    {
+      "name": "辛伐他汀",
+      "aliases": ["Simvastatin", "舒降之", "辛可"],
+      "category": "降脂药（他汀类）",
+      "contraindications": {
+        "diseases": ["活动性肝病", "严重肝损伤", "肌病"],
+        "allergies": ["他汀类"],
+        "pregnancy": "禁用",
+        "note": "定期检测肝功能和肌酶"
+      },
+      "interactions": [
+        { "target_drug": "克拉霉素", "risk_level": "高", "mechanism": "显著增加辛伐他汀浓度，横纹肌溶解风险", "advice": "避免合用" },
+        { "target_drug": "伊曲康唑", "risk_level": "高", "mechanism": "增加肌毒性", "advice": "避免合用" },
+        { "target_drug": "葡萄柚汁", "risk_level": "中", "mechanism": "增加辛伐他汀血药浓度", "advice": "避免大量饮用" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" },
+        { "target_drug": "胺碘酮", "risk_level": "中", "mechanism": "增加肌病风险", "advice": "限制辛伐他汀剂量≤20mg/日" }
+      ],
+      "sideEffects": ["肌肉疼痛", "肝功能异常", "头痛", "胃肠道不适"]
+    },
+    {
+      "name": "阿托伐他汀",
+      "aliases": ["Atorvastatin", "立普妥", "阿乐"],
+      "category": "降脂药（他汀类）",
+      "contraindications": {
+        "diseases": ["活动性肝病", "严重肝损伤", "肌病"],
+        "allergies": ["他汀类"],
+        "pregnancy": "禁用",
+        "note": "定期检测肝功能"
+      },
+      "interactions": [
+        { "target_drug": "克拉霉素", "risk_level": "中", "mechanism": "增加阿托伐他汀浓度", "advice": "限制剂量" },
+        { "target_drug": "葡萄柚汁", "risk_level": "低", "mechanism": "轻度增加血药浓度", "advice": "避免大量饮用" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" }
+      ],
+      "sideEffects": ["肌肉疼痛", "肝功能异常", "头痛", "胃肠道不适"]
+    },
+    {
+      "name": "奥美拉唑",
+      "aliases": ["Omeprazole", "洛赛克", "奥克"],
+      "category": "质子泵抑制剂",
+      "contraindications": {
+        "diseases": ["严重肝病"],
+        "allergies": ["质子泵抑制剂"],
+        "pregnancy": "慎用",
+        "note": "不宜长期连续使用超过8周"
+      },
+      "interactions": [
+        { "target_drug": "氯吡格雷", "risk_level": "中", "mechanism": "降低氯吡格雷疗效", "advice": "改用泮托拉唑" },
+        { "target_drug": "甲氨蝶呤", "risk_level": "中", "mechanism": "增加甲氨蝶呤浓度", "advice": "监测毒性" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "增强抗凝作用", "advice": "监测INR" }
+      ],
+      "sideEffects": ["头痛", "腹泻", "便秘", "维生素B12缺乏（长期）"]
+    },
+    {
+      "name": "泮托拉唑",
+      "aliases": ["Pantoprazole", "潘妥洛克"],
+      "category": "质子泵抑制剂",
+      "contraindications": {
+        "diseases": ["严重肝病"],
+        "allergies": ["质子泵抑制剂"],
+        "pregnancy": "慎用",
+        "note": "与氯吡格雷无交互作用，更安全"
+      },
+      "interactions": [
+        { "target_drug": "甲氨蝶呤", "risk_level": "中", "mechanism": "增加甲氨蝶呤浓度", "advice": "监测" }
+      ],
+      "sideEffects": ["头痛", "腹泻", "便秘"]
+    },
+    {
+      "name": "地高辛",
+      "aliases": ["Digoxin", "狄戈辛"],
+      "category": "强心苷类",
+      "contraindications": {
+        "diseases": ["严重心动过缓", "房室传导阻滞", "肥厚型心肌病", "低钾血症", "严重肾病"],
+        "allergies": ["地高辛"],
+        "pregnancy": "慎用",
+        "note": "治疗窗狭窄，需监测血药浓度"
+      },
+      "interactions": [
+        { "target_drug": "胺碘酮", "risk_level": "高", "mechanism": "增加地高辛浓度50%以上", "advice": "减量50%，监测血药浓度" },
+        { "target_drug": "呋塞米", "risk_level": "中", "mechanism": "低钾增加地高辛毒性", "advice": "监测血钾" },
+        { "target_drug": "克拉霉素", "risk_level": "高", "mechanism": "增加地高辛浓度", "advice": "监测血药浓度" },
+        { "target_drug": "维拉帕米", "risk_level": "高", "mechanism": "增加地高辛浓度", "advice": "减少地高辛剂量" }
+      ],
+      "sideEffects": ["恶心", "心律失常", "视觉异常（黄视）", "头痛"]
+    },
+    {
+      "name": "硝酸甘油",
+      "aliases": ["Nitroglycerin", "Nitroglycerol"],
+      "category": "抗心绞痛药（硝酸酯类）",
+      "contraindications": {
+        "diseases": ["严重低血压", "严重贫血", "颅内压增高", "闭角型青光眼"],
+        "allergies": ["硝酸酯类"],
+        "pregnancy": "慎用",
+        "note": "舌下含服，不可咽下。开封后3个月失效"
+      },
+      "interactions": [
+        { "target_drug": "西地那非（伟哥）", "risk_level": "高危", "mechanism": "协同降压，导致致命低血压", "advice": "绝对禁用！24小时内用过西地那非不可使用硝酸甘油" },
+        { "target_drug": "降压药", "risk_level": "中", "mechanism": "降压作用叠加", "advice": "监测血压" },
+        { "target_drug": "酒精", "risk_level": "中", "mechanism": "增加低血压风险", "advice": "服药期间避免饮酒" }
+      ],
+      "sideEffects": ["头痛", "面红", "低血压", "心跳加快"]
+    },
+    {
+      "name": "呋塞米",
+      "aliases": ["Furosemide", "速尿"],
+      "category": "利尿剂（袢利尿剂）",
+      "contraindications": {
+        "diseases": ["无尿症", "严重低钾血症", "严重肝性脑病", "磺胺过敏"],
+        "allergies": ["磺胺类"],
+        "pregnancy": "慎用",
+        "note": "监测电解质"
+      },
+      "interactions": [
+        { "target_drug": "地高辛", "risk_level": "中", "mechanism": "低钾增强地高辛毒性", "advice": "补钾或联用保钾利尿剂" },
+        { "target_drug": "氨基糖苷类抗生素", "risk_level": "中", "mechanism": "增加耳肾毒性", "advice": "避免合用" },
+        { "target_drug": "ACEI类降压药", "risk_level": "中", "mechanism": "首剂量可能导致低血压", "advice": "从小剂量开始" },
+        { "target_drug": "头孢类抗生素", "risk_level": "中", "mechanism": "增加肾毒性", "advice": "监测肾功能" }
+      ],
+      "sideEffects": ["低血钾", "低血压", "脱水", "高尿酸血症"]
+    },
+    {
+      "name": "美托洛尔",
+      "aliases": ["Metoprolol", "倍他乐克", "美多心安"],
+      "category": "β受体阻滞剂",
+      "contraindications": {
+        "diseases": ["严重心动过缓", "房室传导阻滞", "哮喘", "严重低血压", "心力衰竭失代偿期"],
+        "allergies": ["β受体阻滞剂"],
+        "pregnancy": "慎用",
+        "note": "不可突然停药，逐渐减量"
+      },
+      "interactions": [
+        { "target_drug": "维拉帕米", "risk_level": "高", "mechanism": "负性肌力协同，心动过缓和低血压风险", "advice": "避免合用" },
+        { "target_drug": "地高辛", "risk_level": "中", "mechanism": "增加心动过缓风险", "advice": "监测心率" },
+        { "target_drug": "胰岛素", "risk_level": "中", "mechanism": "掩盖低血糖症状", "advice": "糖尿病患者需注意" }
+      ],
+      "sideEffects": ["乏力", "心动过缓", "手脚冰凉", "失眠", "性功能障碍"]
+    },
+    {
+      "name": "卡托普利",
+      "aliases": ["Captopril", "开博通"],
+      "category": "ACEI类降压药",
+      "contraindications": {
+        "diseases": ["双侧肾动脉狭窄", "血管性水肿病史", "严重肾衰竭", "高钾血症"],
+        "allergies": ["ACEI类"],
+        "pregnancy": "禁用",
+        "note": "可能会引起干咳"
+      },
+      "interactions": [
+        { "target_drug": "布洛芬", "risk_level": "中", "mechanism": "降低降压效果，增加肾损伤", "advice": "监测血压和肾功能" },
+        { "target_drug": "保钾利尿剂", "risk_level": "中", "mechanism": "增加高钾血症风险", "advice": "监测血钾" },
+        { "target_drug": "胰岛素", "risk_level": "低", "mechanism": "增强降糖作用", "advice": "监测血糖" }
+      ],
+      "sideEffects": ["干咳", "高血钾", "低血压", "皮疹", "味觉异常"]
+    },
+    {
+      "name": "氯沙坦",
+      "aliases": ["Losartan", "科素亚"],
+      "category": "ARB类降压药",
+      "contraindications": {
+        "diseases": ["双侧肾动脉狭窄", "严重肾衰竭", "高钾血症"],
+        "allergies": ["ARB类"],
+        "pregnancy": "禁用",
+        "note": "咳嗽副作用比ACEI少"
+      },
+      "interactions": [
+        { "target_drug": "布洛芬", "risk_level": "中", "mechanism": "降低降压效果", "advice": "监测血压" },
+        { "target_drug": "保钾利尿剂", "risk_level": "中", "mechanism": "增加高钾血症风险", "advice": "监测血钾" }
+      ],
+      "sideEffects": ["头晕", "高血钾", "低血压"]
+    },
+    {
+      "name": "氢氯噻嗪",
+      "aliases": ["Hydrochlorothiazide", "双氢克尿塞"],
+      "category": "噻嗪类利尿剂",
+      "contraindications": {
+        "diseases": ["无尿症", "严重肾衰竭", "严重肝病", "高钙血症", "痛风"],
+        "allergies": ["磺胺类"],
+        "pregnancy": "慎用",
+        "note": "监测电解质和尿酸"
+      },
+      "interactions": [
+        { "target_drug": "地高辛", "risk_level": "中", "mechanism": "低钾增加地高辛毒性", "advice": "补钾" },
+        { "target_drug": "糖皮质激素", "risk_level": "中", "mechanism": "增加低血钾风险", "advice": "监测血钾" },
+        { "target_drug": "胰岛素", "risk_level": "低", "mechanism": "可能影响血糖控制", "advice": "监测血糖" },
+        { "target_drug": "NSAIDs", "risk_level": "中", "mechanism": "降低利尿效果", "advice": "监测血压" }
+      ],
+      "sideEffects": ["低血钾", "高尿酸血症", "高血糖", "高血脂", "头晕"]
+    },
+    {
+      "name": "多潘立酮",
+      "aliases": ["Domperidone", "吗丁啉"],
+      "category": "促胃肠动力药",
+      "contraindications": {
+        "diseases": ["消化道出血", "机械性肠梗阻", "胃穿孔", "QT间期延长", "严重肝病"],
+        "allergies": ["多潘立酮"],
+        "pregnancy": "慎用",
+        "note": "日最大剂量30mg"
+      },
+      "interactions": [
+        { "target_drug": "酮康唑", "risk_level": "高", "mechanism": "延长QT间期", "advice": "禁用" },
+        { "target_drug": "克拉霉素", "risk_level": "中", "mechanism": "增加心脏毒性风险", "advice": "避免合用" },
+        { "target_drug": "抗胆碱药", "risk_level": "低", "mechanism": "拮抗促动力作用", "advice": "间隔至少2小时" }
+      ],
+      "sideEffects": ["口干", "头痛", "腹泻", "QT间期延长"]
+    },
+    {
+      "name": "蒙脱石散",
+      "aliases": ["思密达", "Smectite", "Dioctahedral Smectite"],
+      "category": "止泻药",
+      "contraindications": {
+        "diseases": ["肠梗阻"],
+        "allergies": ["蒙脱石"],
+        "pregnancy": "可安全使用",
+        "note": "与其他药物间隔2小时服用"
+      },
+      "interactions": [
+        { "target_drug": "其他药物", "risk_level": "中", "mechanism": "吸附作用降低其他药物吸收", "advice": "间隔2小时以上服用" }
+      ],
+      "sideEffects": ["便秘"]
+    },
+    {
+      "name": "藿香正气水",
+      "aliases": ["藿香正气口服液"],
+      "category": "中成药（祛暑剂）",
+      "contraindications": {
+        "diseases": ["酒精过敏", "严重肝病", "孕妇"],
+        "allergies": ["酒精"],
+        "pregnancy": "禁用",
+        "note": "含酒精，服药后禁止驾驶"
+      },
+      "interactions": [
+        { "target_drug": "头孢类抗生素", "risk_level": "高", "mechanism": "双硫仑样反应（因含酒精）", "advice": "避免同服" },
+        { "target_drug": "甲硝唑", "risk_level": "高", "mechanism": "双硫仑样反应", "advice": "避免同服" }
+      ],
+      "sideEffects": ["酒精相关不良反应", "胃肠道不适"]
+    },
+    {
+      "name": "板蓝根颗粒",
+      "aliases": ["板蓝根"],
+      "category": "中成药（清热解毒）",
+      "contraindications": {
+        "diseases": ["脾胃虚寒", "糖尿病（含糖颗粒需注意）"],
+        "allergies": ["板蓝根"],
+        "pregnancy": "慎用",
+        "note": "风寒感冒不宜使用"
+      },
+      "interactions": [],
+      "sideEffects": ["胃肠道不适", "腹泻"]
+    },
+    {
+      "name": "连花清瘟胶囊",
+      "aliases": ["连花清瘟"],
+      "category": "中成药（清热解毒）",
+      "contraindications": {
+        "diseases": ["脾胃虚寒", "严重肝病"],
+        "allergies": ["连翘", "金银花", "麻黄"],
+        "pregnancy": "慎用",
+        "note": "高血压、心脏病患者慎用"
+      },
+      "interactions": [
+        { "target_drug": "降压药", "risk_level": "中", "mechanism": "含有麻黄碱可能升高血压", "advice": "监测血压" },
+        { "target_drug": "MAOIs", "risk_level": "中", "mechanism": "含麻黄碱，有高血压危象风险", "advice": "避免合用" }
+      ],
+      "sideEffects": ["胃肠道不适", "心悸"]
+    },
+    {
+      "name": "硝苯地平",
+      "aliases": ["Nifedipine", "心痛定", "拜新同"],
+      "category": "钙通道阻滞剂",
+      "contraindications": {
+        "diseases": ["严重低血压", "严重主动脉瓣狭窄", "心源性休克"],
+        "allergies": ["二氢吡啶类"],
+        "pregnancy": "慎用",
+        "note": "短效制剂不宜用于高血压长期治疗"
+      },
+      "interactions": [
+        { "target_drug": "葡萄柚汁", "risk_level": "高", "mechanism": "显著增加硝苯地平血药浓度", "advice": "禁食葡萄柚" },
+        { "target_drug": "克拉霉素", "risk_level": "中", "mechanism": "增加硝苯地平浓度", "advice": "监测血压" },
+        { "target_drug": "镁剂", "risk_level": "中", "mechanism": "硝苯地平可能拮抗镁剂作用", "advice": "监测反应" }
+      ],
+      "sideEffects": ["头痛", "水肿", "面红", "心悸"]
+    },
+    {
+      "name": "胺碘酮",
+      "aliases": ["Amiodarone", "可达龙"],
+      "category": "抗心律失常药（III类）",
+      "contraindications": {
+        "diseases": ["严重心动过缓", "甲状腺疾病", "严重肝病", "肺间质疾病", "QT间期延长"],
+        "allergies": ["胺碘酮"],
+        "pregnancy": "禁用",
+        "note": "半衰期长达数月，起效慢，需定期监测甲状腺、肝功能和肺功能"
+      },
+      "interactions": [
+        { "target_drug": "地高辛", "risk_level": "高", "mechanism": "增加地高辛浓度50-100%", "advice": "地高辛减量50%" },
+        { "target_drug": "华法林", "risk_level": "高", "mechanism": "增强抗凝作用", "advice": "华法林减量1/3-1/2" },
+        { "target_drug": "辛伐他汀", "risk_level": "中", "mechanism": "增加肌病风险", "advice": "辛伐他汀≤20mg/日" },
+        { "target_drug": "左氧氟沙星", "risk_level": "中", "mechanism": "增加QT间期延长风险", "advice": "避免合用" }
+      ],
+      "sideEffects": ["甲状腺功能异常", "肺纤维化", "肝功能异常", "角膜沉积", "光敏反应"]
+    },
+    {
+      "name": "甲氨蝶呤",
+      "aliases": ["Methotrexate", "氨甲蝶呤", "MTX"],
+      "category": "抗肿瘤/免疫抑制剂",
+      "contraindications": {
+        "diseases": ["严重肝病", "严重肾病", "严重贫血", "免疫功能低下", "酒精性肝病"],
+        "allergies": ["甲氨蝶呤"],
+        "pregnancy": "禁用（致畸）",
+        "note": "每周给药一次，不可每日服用。必须补充叶酸"
+      },
+      "interactions": [
+        { "target_drug": "阿司匹林", "risk_level": "高", "mechanism": "减少MTX排泄，增加毒性", "advice": "避免合用" },
+        { "target_drug": "布洛芬", "risk_level": "高", "mechanism": "减少MTX排泄，增加骨髓抑制风险", "advice": "避免合用" },
+        { "target_drug": "青霉素类抗生素", "risk_level": "中", "mechanism": "减少MTX排泄", "advice": "监测血药浓度" },
+        { "target_drug": "奥美拉唑", "risk_level": "中", "mechanism": "减少MTX排泄", "advice": "避免合用" },
+        { "target_drug": "叶酸", "risk_level": "无", "mechanism": "补充叶酸可减轻副作用但不影响疗效", "advice": "常规补充" }
+      ],
+      "sideEffects": ["骨髓抑制", "肝功能异常", "口腔溃疡", "恶心", "脱发", "肺纤维化"]
+    },
+    {
+      "name": "泼尼松",
+      "aliases": ["Prednisone", "强的松"],
+      "category": "糖皮质激素",
+      "contraindications": {
+        "diseases": ["严重感染", "糖尿病控制不良", "严重高血压", "胃溃疡", "骨质疏松", "青光眼"],
+        "allergies": ["糖皮质激素"],
+        "pregnancy": "慎用",
+        "note": "不可突然停药，需逐渐减量。长期使用需补钙和维生素D"
+      },
+      "interactions": [
+        { "target_drug": "阿司匹林", "risk_level": "中", "mechanism": "增加胃肠道溃疡和出血风险", "advice": "加用胃黏膜保护剂" },
+        { "target_drug": "布洛芬", "risk_level": "中", "mechanism": "增加胃肠道溃疡风险", "advice": "避免合用或加用PPI" },
+        { "target_drug": "胰岛素", "risk_level": "中", "mechanism": "升高血糖，影响降糖药效果", "advice": "监测血糖，调整降糖药剂量" },
+        { "target_drug": "氢氯噻嗪", "risk_level": "中", "mechanism": "增加低钾血症风险", "advice": "监测血钾" },
+        { "target_drug": "华法林", "risk_level": "中", "mechanism": "可能增强或减弱抗凝作用", "advice": "监测INR" }
+      ],
+      "sideEffects": ["体重增加", "水肿", "高血糖", "骨质疏松", "免疫力下降", "失眠", "情绪波动"]
+    },
+    {
+      "name": "维生素C",
+      "aliases": ["维C", "抗坏血酸", "Vitamin C", "Ascorbic Acid"],
+      "category": "维生素",
+      "contraindications": {
+        "diseases": ["肾结石", "高草酸尿症", "G6PD缺乏症（大剂量）"],
+        "allergies": ["维生素C"],
+        "pregnancy": "可安全使用",
+        "note": "日剂量不超过2g"
+      },
+      "interactions": [
+        { "target_drug": "华法林", "risk_level": "低", "mechanism": "大剂量可能降低抗凝效果", "advice": "监测INR" },
+        { "target_drug": "维生素B12", "risk_level": "低", "mechanism": "大剂量可破坏B12", "advice": "间隔2小时服用" }
+      ],
+      "sideEffects": ["胃肠道不适（大剂量）", "腹泻"]
+    },
+    {
+      "name": "维生素B12",
+      "aliases": ["甲钴胺", "腺苷钴胺", "Vitamin B12", "Cyanocobalamin"],
+      "category": "维生素",
+      "contraindications": {
+        "diseases": ["对钴过敏"],
+        "allergies": ["维生素B12", "钴"],
+        "pregnancy": "可安全使用",
+        "note": "治疗巨幼细胞性贫血时需同时补充叶酸"
+      },
+      "interactions": [
+        { "target_drug": "二甲双胍", "risk_level": "低", "mechanism": "长期使用二甲双胍可减少B12吸收", "advice": "定期监测B12水平" },
+        { "target_drug": "奥美拉唑", "risk_level": "低", "mechanism": "长期使用PPI减少B12吸收", "advice": "监测B12水平" }
+      ],
+      "sideEffects": ["极少有副作用"]
+    },
+    {
+      "name": "钙片",
+      "aliases": ["碳酸钙", "钙尔奇", "Calcium", "Calcium Carbonate"],
+      "category": "矿物质补充剂",
+      "contraindications": {
+        "diseases": ["高钙血症", "严重肾病", "肾结石"],
+        "allergies": ["钙"],
+        "pregnancy": "可安全使用",
+        "note": "随餐服用吸收更好"
+      },
+      "interactions": [
+        { "target_drug": "左氧氟沙星", "risk_level": "高", "mechanism": "显著降低喹诺酮吸收", "advice": "间隔至少2小时" },
+        { "target_drug": "阿奇霉素", "risk_level": "中", "mechanism": "降低抗生素吸收", "advice": "间隔至少2小时" },
+        { "target_drug": "噻嗪类利尿剂", "risk_level": "中", "mechanism": "增加高钙血症风险", "advice": "监测血钙" },
+        { "target_drug": "铁剂", "risk_level": "低", "mechanism": "减少铁吸收", "advice": "间隔2小时服用" }
+      ],
+      "sideEffects": ["便秘", "腹胀", "嗳气"]
+    },
+    {
+      "name": "黄连素",
+      "aliases": ["小檗碱", "Berberine"],
+      "category": "中成药（抗菌止泻）",
+      "contraindications": {
+        "diseases": ["G6PD缺乏症", "严重低血压"],
+        "allergies": ["黄连素"],
+        "pregnancy": "慎用",
+        "note": "不宜长期服用"
+      },
+      "interactions": [
+        { "target_drug": "环孢素", "risk_level": "中", "mechanism": "增加环孢素浓度", "advice": "监测血药浓度" }
+      ],
+      "sideEffects": ["胃肠道不适", "便秘"]
+    },
+    {
+      "name": "乳果糖口服液",
+      "aliases": ["杜密克", "Lactulose", "利动"],
+      "category": "渗透性泻药",
+      "contraindications": {
+        "diseases": ["肠梗阻", "半乳糖不耐受", "消化道穿孔"],
+        "allergies": ["乳果糖"],
+        "pregnancy": "可安全使用",
+        "note": "起效需24-48小时"
+      },
+      "interactions": [],
+      "sideEffects": ["腹胀", "胃肠气胀", "腹泻（过量）"]
+    },
+    {
+      "name": "硝苯地平缓释片",
+      "aliases": ["拜新同"],
+      "category": "钙通道阻滞剂",
+      "contraindications": {
+        "diseases": ["严重低血压", "心源性休克"],
+        "allergies": ["二氢吡啶类"],
+        "pregnancy": "慎用"
+      },
+      "interactions": [
+        { "target_drug": "葡萄柚汁", "risk_level": "高", "mechanism": "显著增加血药浓度", "advice": "避免同服" }
+      ],
+      "sideEffects": ["头痛", "水肿", "面红"]
+    }
+  ],
+  "import_instructions": "在微信云开发控制台中：1. 创建集合 cme_kg_medicines  2. 导入此JSON文件（去掉_comment和import_instructions字段） 3. 设置name字段为索引"
+}

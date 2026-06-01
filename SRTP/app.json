@@ -1,0 +1,68 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/manage/manage",
+    "pages/supervise/supervise",
+    "pages/profile/profile"
+  ],
+  "subPackages": [
+    {
+      "root": "packageAudio",
+      "pages": [],
+      "independent": true
+    },
+    {
+      "root": "packageA",
+      "pages": [
+        "pages/reminder-settings/reminder-settings",
+        "pages/history/history",
+        "pages/privacy/privacy",
+        "pages/profile-edit/profile-edit",
+        "pages/reminder/reminder",
+        "pages/lock/lock",
+        "pages/contraindication/contraindication"
+      ]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4a90e2",
+    "navigationBarTitleText": "用药提醒",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7fa"
+  },
+  "tabBar": {
+    "color": "#a0aec0",
+    "selectedColor": "#4a90e2",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "用药",
+        "iconPath": "images/tabbar/MED.jpg",
+        "selectedIconPath": "images/tabbar/MED-C.jpg"
+      },
+      {
+        "pagePath": "pages/manage/manage",
+        "text": "管理",
+        "iconPath": "images/tabbar/MAN.jpg",
+        "selectedIconPath": "images/tabbar/MAN-C.jpg"
+      },
+      {
+        "pagePath": "pages/supervise/supervise",
+        "text": "监管",
+        "iconPath": "images/tabbar/MON.jpg",
+        "selectedIconPath": "images/tabbar/MON-C.jpg"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tabbar/ME.jpg",
+        "selectedIconPath": "images/tabbar/ME-C.jpg"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

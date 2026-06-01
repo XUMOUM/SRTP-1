@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "用药提醒",
+  "enablePullDownRefresh": false,
+  "backgroundTextStyle": "dark"
+}

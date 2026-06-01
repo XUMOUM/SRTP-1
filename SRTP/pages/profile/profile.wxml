@@ -1,0 +1,221 @@
+<view class="profile-container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card" bindtap="navigateToProfileEdit">
+    <view class="user-info">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill"></image>
+      <view class="user-details">
+        <text class="user-name">{{userInfo.nickName || '未登录'}}</text>
+        <text class="user-id" wx:if="{{userInfo.userId}}">ID: {{userInfo.userId}}</text>
+        <text class="login-tip" wx:if="{{!userInfo.nickName}}">点击登录获取个性化服务</text>
+      </view>
+    </view>
+    <!-- 右侧箭头 -->
+    <view class="card-arrow">
+      <text class="arrow-icon">›</text>
+    </view>
+  </view>
+
+  <!-- 健康摘要卡片 -->
+  <view class="health-summary-card" wx:if="{{isLoggedIn}}" bindtap="navigateToProfileEdit">
+    <view class="health-summary-header">
+      <text class="health-summary-icon">🏥</text>
+      <text class="health-summary-title">健康摘要</text>
+      <text class="health-summary-arrow">></text>
+    </view>
+    <view class="health-summary-body">
+      <view class="health-tag-item {{healthProfile.allergies && healthProfile.allergies.length > 0 ? 'has-data' : 'no-data'}}">
+        <text class="health-tag-label">过敏史</text>
+        <text class="health-tag-value">{{healthProfile.allergies ? healthProfile.allergies.join('、') : '未填写'}}</text>
+      </view>
+      <view class="health-tag-item {{healthProfile.chronicDiseases && healthProfile.chronicDiseases.length > 0 ? 'has-data' : 'no-data'}}">
+        <text class="health-tag-label">慢性病</text>
+        <text class="health-tag-value">{{healthProfile.chronicDiseases ? healthProfile.chronicDiseases.join('、') : '未填写'}}</text>
+      </view>
+      <view class="health-tag-item {{healthProfile.specialStatusIndex > 0 ? 'has-data' : 'no-data'}}">
+        <text class="health-tag-label">特殊状态</text>
+        <text class="health-tag-value">{{healthProfile.specialStatusName || '无特殊'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能设置区域 -->
+  <view class="settings-section">
+    <view class="section-title">用药设置</view>
+    
+    <view class="setting-item" bindtap="navigateToReminderSettings">
+      <view class="setting-left">
+        <view class="setting-icon">⏰</view>
+        <text class="setting-text">提醒设置</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">用药提醒时间与方式</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="navigateToMedicineManagement">
+      <view class="setting-left">
+        <view class="setting-icon">💊</view>
+        <text class="setting-text">药品管理</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">管理您的药品库</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="navigateToHistory">
+      <view class="setting-left">
+        <view class="setting-icon">📊</view>
+        <text class="setting-text">用药记录</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">查看30天用药数据</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 通用设置区域 -->
+  <view class="settings-section">
+    <view class="section-title">通用设置</view>
+
+    <!-- 新增：健康档案 -->
+    <view class="setting-item" bindtap="navigateToProfileEdit">
+      <view class="setting-left">
+        <view class="setting-icon">🏥</view>
+        <text class="setting-text">健康档案</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">病史、过敏史管理</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <!-- 新增：禁忌管理入口 -->
+    <view class="setting-item" bindtap="navigateToContraindication">
+      <view class="setting-left">
+        <view class="setting-icon">⚠️</view>
+        <text class="setting-text">禁忌管理</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">用药禁忌与冲突分析</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="navigateToPrivacy">
+      <view class="setting-left">
+        <view class="setting-icon">🔒</view>
+        <text class="setting-text">隐私设置</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">好友权限、小程序锁</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="navigateToHelp">
+      <view class="setting-left">
+        <view class="setting-icon">❓</view>
+        <text class="setting-text">帮助与反馈</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">使用帮助与问题反馈</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="navigateToAbout">
+      <view class="setting-left">
+        <view class="setting-icon">ℹ️</view>
+        <text class="setting-text">关于我们</text>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">版本信息与功能介绍</text>
+        <text class="setting-arrow">></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作区域 - 只在已登录时显示 -->
+  <view class="action-section" wx:if="{{isLoggedIn}}">
+    <button class="logout-btn" bindtap="handleLogout">退出登录</button>
+  </view>
+
+  <!-- 登录弹窗 -->
+  <view class="modal" wx:if="{{showLoginModal}}">
+    <view class="modal-mask" bindtap="hideLoginModal"></view>
+    <view class="modal-content login-modal">
+      <view class="modal-header">
+        <text class="modal-title">登录</text>
+      </view>
+      <view class="modal-body">
+        <text class="login-tip">登录后可以使用完整功能</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideLoginModal">取消</button>
+        <button class="modal-btn confirm" bindtap="startWxLogin">微信登录</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关于我们弹窗 -->
+  <view class="modal info-modal" wx:if="{{showAboutModal}}">
+    <view class="modal-mask" bindtap="hideAboutModal"></view>
+    <view class="modal-content about-content">
+      <view class="modal-header about-header">
+        <view class="about-icon">🎓</view>
+        <text class="modal-title about-title">关于我们</text>
+      </view>
+      <view class="modal-body about-body">
+        <view class="about-text-container">
+          <text class="about-text">我们是来自</text>
+          <text class="about-highlight">CQU计软22班</text>
+          <text class="about-text">的</text>
+        </view>
+        <view class="about-text-container">
+          <text class="about-highlight-large">大一学生</text>
+        </view>
+        <view class="about-version">
+          <text class="version-label">当前版本</text>
+          <text class="version-number">beta1.0</text>
+        </view>
+        <view class="about-decoration">
+          <text class="decoration-dot"></text>
+          <text class="decoration-dot"></text>
+          <text class="decoration-dot"></text>
+        </view>
+      </view>
+      <view class="modal-footer about-footer">
+        <button class="modal-btn confirm about-btn" bindtap="hideAboutModal">关 闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 帮助与反馈弹窗 -->
+  <view class="modal info-modal" wx:if="{{showHelpModal}}">
+    <view class="modal-mask" bindtap="hideHelpModal"></view>
+    <view class="modal-content help-content">
+      <view class="modal-header help-header">
+        <view class="help-icon">📧</view>
+        <text class="modal-title help-title">帮助与反馈</text>
+      </view>
+      <view class="modal-body help-body">
+        <view class="help-message">
+          <text class="help-text">如有问题需反馈，请联系我们，</text>
+          <text class="help-text">不胜感激。</text>
+        </view>
+        <view class="email-container" bindtap="copyEmail">
+          <view class="email-icon">✉️</view>
+          <text class="email-text">xu_zi666666@126.com</text>
+          <view class="copy-badge">点击复制</view>
+        </view>
+        <view class="help-tip">点击卡片复制邮箱</view>
+      </view>
+      <view class="modal-footer help-footer">
+        <button class="modal-btn confirm help-btn" bindtap="hideHelpModal">关 闭</button>
+      </view>
+    </view>
+  </view>
+</view>

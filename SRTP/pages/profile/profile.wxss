@@ -1,0 +1,693 @@
+.profile-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding-bottom: 40rpx;
+}
+
+/* 用户信息卡片 - 添加点击效果 */
+.user-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 30rpx;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  color: white;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* 添加点击反馈效果 */
+.user-card:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.user-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: 30rpx;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.user-id {
+  display: block;
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-bottom: 5rpx;
+}
+
+.login-tip {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.9;
+  margin-bottom: 5rpx;
+}
+
+.login-tap-hint {
+  display: block;
+  font-size: 22rpx;
+  opacity: 0.7;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* 设置区域 */
+.settings-section {
+  background: white;
+  margin: 30rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #718096;
+  font-weight: 500;
+  padding: 30rpx 30rpx 20rpx;
+  border-bottom: 2rpx solid #f1f5f9;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.setting-item:active {
+  background-color: #f8fafc;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.setting-icon {
+  width: 60rpx;
+  height: 60rpx;
+  background: #f1f5f9;
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  margin-right: 20rpx;
+}
+
+.setting-text {
+  font-size: 30rpx;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.setting-right {
+  display: flex;
+  align-items: center;
+}
+
+.setting-desc {
+  font-size: 24rpx;
+  color: #a0aec0;
+  margin-right: 15rpx;
+}
+
+.setting-arrow {
+  font-size: 24rpx;
+  color: #cbd5e0;
+}
+
+/* 底部操作区域 */
+.action-section {
+  margin: 30rpx;
+}
+
+.logout-btn {
+  background: #f56565;
+  color: white;
+  border: none;
+  border-radius: 40rpx;
+  padding: 25rpx;
+  font-size: 28rpx;
+  width: 100%;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  width: 600rpx;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 40rpx 40rpx 20rpx;
+  text-align: center;
+  border-bottom: 2rpx solid #f1f5f9;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.modal-body {
+  padding: 30rpx 40rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #4a5568;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 2rpx solid #f1f5f9;
+}
+
+.modal-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 30rpx;
+  font-size: 28rpx;
+  border-radius: 0;
+}
+
+.modal-btn.cancel {
+  color: #718096;
+  border-right: 1rpx solid #f1f5f9;
+}
+
+.modal-btn.confirm {
+  color: #667eea;
+  font-weight: bold;
+}
+/* ===== 以下为新添加的弹窗样式，请添加在文件最末尾 ===== */
+
+/* 弹窗居中覆盖样式 - 确保弹窗在屏幕正中心 */
+.info-modal .modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.info-modal .modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 650rpx;
+  max-width: 90%;
+  margin: 0;
+  border-radius: 40rpx;
+  overflow: hidden;
+  box-shadow: 0 30rpx 60rpx rgba(102, 126, 234, 0.3);
+  z-index: 10000;
+}
+
+/* 关于我们弹窗样式 */
+.about-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.about-header {
+  border-bottom: 2rpx solid rgba(255, 255, 255, 0.2);
+  padding: 50rpx 40rpx 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.about-icon {
+  width: 100rpx;
+  height: 100rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+.about-title {
+  color: white;
+  font-size: 40rpx;
+  font-weight: 600;
+  text-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.about-body {
+  padding: 40rpx 40rpx 50rpx;
+  text-align: center;
+  color: white;
+}
+
+.about-text-container {
+  margin-bottom: 15rpx;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.about-text {
+  font-size: 32rpx;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.about-highlight {
+  font-size: 36rpx;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8rpx 20rpx;
+  border-radius: 40rpx;
+  margin: 0 10rpx;
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.about-highlight-large {
+  font-size: 48rpx;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff8e7 0%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  letter-spacing: 4rpx;
+  position: relative;
+  display: inline-block;
+  padding: 10rpx 30rpx;
+}
+
+.about-decoration {
+  margin-top: 40rpx;
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.decoration-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.decoration-dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.decoration-dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.about-footer {
+  border-top: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.about-btn {
+  color: white !important;
+  font-size: 32rpx !important;
+  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10rpx);
+  padding: 30rpx !important;
+  transition: all 0.3s ease;
+  border: none;
+  width: 100%;
+}
+
+.about-btn:active {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(0.98);
+}
+/* 版本号样式 - 添加到关于我们弹窗样式后面 */
+.about-version {
+  margin-top: 30rpx;
+  margin-bottom: 20rpx;
+  padding: 15rpx 30rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50rpx;
+  display: inline-block;
+  backdrop-filter: blur(5rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.version-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 10rpx;
+}
+
+.version-number {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: white;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 4rpx 16rpx;
+  border-radius: 30rpx;
+  letter-spacing: 1rpx;
+}
+/* 帮助与反馈弹窗样式 */
+.help-content {
+  background: white;
+}
+
+.help-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  padding: 50rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.help-icon {
+  width: 100rpx;
+  height: 100rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  animation: shake 3s ease-in-out infinite;
+}
+
+.help-title {
+  color: white;
+  font-size: 40rpx;
+  font-weight: 600;
+  text-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.help-body {
+  padding: 50rpx 40rpx;
+  text-align: center;
+}
+
+.help-message {
+  margin-bottom: 40rpx;
+}
+
+.help-text {
+  display: block;
+  font-size: 30rpx;
+  color: #4a5568;
+  line-height: 1.8;
+  font-weight: 400;
+}
+
+/* 邮箱容器 */
+.email-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  padding: 30rpx;
+  border-radius: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #e2e8f0;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.email-container:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+  border-color: #667eea;
+}
+
+.email-icon {
+  font-size: 40rpx;
+  margin-bottom: 15rpx;
+}
+
+.email-text {
+  font-size: 32rpx;
+  color: #2d3748;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+  word-break: break-all;
+  text-align: center;
+  margin-bottom: 15rpx;
+}
+
+.copy-badge {
+  background: #667eea;
+  color: white;
+  font-size: 24rpx;
+  padding: 10rpx 30rpx;
+  border-radius: 40rpx;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.help-tip {
+  font-size: 24rpx;
+  color: #a0aec0;
+  margin-top: 20rpx;
+  font-style: italic;
+}
+
+.help-footer {
+  border-top: 2rpx solid #f1f5f9;
+}
+
+.help-btn {
+  color: #667eea !important;
+  font-size: 32rpx !important;
+  font-weight: 600 !important;
+  background: #f8fafc !important;
+  padding: 30rpx !important;
+  transition: all 0.3s ease;
+  border: none;
+  width: 100%;
+}
+
+.help-btn:active {
+  background: #edf2f7 !important;
+  color: #764ba2 !important;
+}
+
+/* 动画效果 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10rpx);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+/* pulse动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 添加到用户卡片样式末尾 */
+.card-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: 20rpx;
+}
+
+.arrow-icon {
+  font-size: 48rpx;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
+}
+/* 添加到文件末尾 */
+
+/* 用户卡片箭头 */
+.card-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: 20rpx;
+}
+
+.arrow-icon {
+  font-size: 48rpx;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
+}
+
+/* 登录弹窗 */
+.login-modal {
+  width: 550rpx;
+}
+
+.login-tip {
+  display: block;
+  text-align: center;
+  font-size: 28rpx;
+  color: #4a5568;
+  padding: 20rpx 0;
+}
+
+/* ===== 健康摘要卡片 ===== */
+.health-summary-card {
+  margin: 0 30rpx 20rpx;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-left: 6rpx solid #48bb78;
+}
+
+.health-summary-header {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 2rpx solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.health-summary-icon {
+  font-size: 28rpx;
+  margin-right: 10rpx;
+}
+
+.health-summary-title {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.health-summary-arrow {
+  font-size: 28rpx;
+  color: #cbd5e0;
+}
+
+.health-summary-body {
+  padding: 20rpx 30rpx;
+}
+
+.health-tag-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 14rpx;
+  padding: 0;
+}
+
+.health-tag-item:last-child {
+  margin-bottom: 0;
+}
+
+.health-tag-label {
+  font-size: 24rpx;
+  color: #718096;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.health-tag-value {
+  font-size: 24rpx;
+  color: #2d3748;
+  font-weight: 500;
+  flex: 1;
+  line-height: 1.6;
+}
+
+.health-tag-item.has-data .health-tag-value {
+  color: #2d3748;
+}
+
+.health-tag-item.no-data .health-tag-value {
+  color: #cbd5e0;
+  font-weight: normal;
+}

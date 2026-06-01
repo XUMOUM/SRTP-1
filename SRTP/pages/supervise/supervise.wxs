@@ -1,0 +1,65 @@
+// pages/supervise/supervise.wxs
+
+/**
+ * 计算进度条宽度百分比
+ * @param {number} completed 已完成数量
+ * @param {number} total 总数量
+ * @returns {string} 带百分号的宽度值
+ */
+function getProgressWidth(completed, total) {
+  if (!total || total === 0) return '0%';
+  var percentage = (completed / total) * 100;
+  percentage = percentage > 100 ? 100 : percentage;
+  return percentage + '%';
+}
+
+/**
+ * 获取状态文本
+ * @param {string} status 在线状态
+ * @returns {string} 中文状态
+ */
+function getStatusText(status) {
+  return status === 'online' ? '在线' : '离线';
+}
+
+/**
+ * 获取状态类名
+ * @param {string} status 在线状态
+ * @returns {string} 状态类名
+ */
+function getStatusClass(status) {
+  return status === 'online' ? 'online' : 'offline';
+}
+
+/**
+ * 格式化最后活跃时间
+ * @param {string} lastActive 最后活跃时间
+ * @returns {string} 格式化后的时间
+ */
+function formatLastActive(lastActive) {
+  if (!lastActive) return '未知';
+  return lastActive;
+}
+
+/**
+ * 获取鼓励语
+ * @param {number} completed 已完成数量
+ * @param {number} total 总数量
+ * @returns {string} 鼓励语
+ */
+function getEncouragement(completed, total) {
+  if (completed >= total) {
+    return '🎉 今日用药全部完成，太棒了！';
+  } else {
+    var remaining = total - completed;
+    return '💪 还有 ' + remaining + ' 项待完成，加油！';
+  }
+}
+
+module.exports = {
+  getProgressWidth: getProgressWidth,
+  getStatusText: getStatusText,
+  getStatusClass: getStatusClass,
+  formatLastActive: formatLastActive,
+  getEncouragement: getEncouragement
+};

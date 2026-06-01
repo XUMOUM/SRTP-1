@@ -1,0 +1,18 @@
+// pages/index/index.wxs
+
+/**
+ * 获取进度条宽度样式
+ * @param {number} completed 已完成数量
+ * @param {number} total 总数量
+ * @returns {string} 完整的style字符串
+ */
+function getProgressBarStyle(completed, total) {
+  if (!total || total === 0) return 'width: 0%';
+  var percentage = (completed / total) * 100;
+  percentage = percentage > 100 ? 100 : percentage;
+  return 'width: ' + percentage + '%';
+}
+
+module.exports = {
+  getProgressBarStyle: getProgressBarStyle
+};

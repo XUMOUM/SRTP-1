@@ -1,0 +1,48 @@
+// pages/history/history.wxs
+
+/**
+ * 获取柱状图高度样式
+ * @param {number} rate 完成率
+ * @returns {string} 完整的style字符串
+ */
+function getBarStyle(rate) {
+  return 'height: ' + rate + '%; background-color: #667eea';
+}
+
+/**
+ * 获取完成率颜色类
+ * @param {number} rate 完成率
+ * @returns {string} 颜色类名
+ */
+function getRateClass(rate) {
+  if (rate >= 70) {
+    return 'rate-high';
+  } else if (rate >= 40) {
+    return 'rate-medium';
+  } else {
+    return 'rate-low';
+  }
+}
+
+/**
+ * 查找日期在数组中的索引
+ * @param {array} dailyRecords 每日记录数组
+ * @param {string} selectedDate 选中的日期
+ * @returns {number} 索引值
+ */
+function findDateIndex(dailyRecords, selectedDate) {
+  if (!dailyRecords || !selectedDate) return 0;
+  
+  for (var i = 0; i < dailyRecords.length; i++) {
+    if (dailyRecords[i].date === selectedDate) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+module.exports = {
+  getBarStyle: getBarStyle,
+  getRateClass: getRateClass,
+  findDateIndex: findDateIndex
+};

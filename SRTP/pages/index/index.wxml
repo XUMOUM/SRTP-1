@@ -1,0 +1,117 @@
+<wxs src="./index.wxs" module="utils" />
+
+<view class="container">
+  <view class="header-section">
+    <view class="subtitle-container">
+      <text class="app-subtitle">按时用药 · 健康生活</text>
+    </view>
+    
+    <view class="header-content">
+      <view class="time-display">
+        <text class="current-time">{{currentTime}}</text>
+        <text class="current-date">{{currentDate}}</text>
+      </view>
+      <view class="app-title-section">
+        <text class="app-title">用药提醒</text>
+      </view>
+    </view>
+    
+    <view class="header-stats">
+      <view class="stat-item">
+        <view class="stat-number-container">
+          <text class="stat-number">{{reminderCount}}</text>
+          <text class="stat-divider">/</text>
+          <text class="stat-total">{{totalCount}}</text>
+        </view>
+        <text class="stat-label">今日待用</text>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number-container">
+          <text class="stat-number">{{completedCount}}</text>
+          <text class="stat-divider">/</text>
+          <text class="stat-total">{{totalCount}}</text>
+        </view>
+        <text class="stat-label">已完成</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="today-reminder">
+    <view class="section-header">
+      <text class="section-title">今日用药计划</text>
+      <view class="reminder-count">{{totalCount}}</view>
+    </view>
+
+    <view class="reminder-list">
+      <view wx:for="{{reminderList}}" wx:key="id" wx:for-item="group" class="period-group">
+        
+        <view class="group-header" bindtap="toggleGroupExpand" data-id="{{group.id}}">
+          <view class="group-header-left">
+            <text class="group-icon">{{group.icon}}</text>
+            <text class="group-name">{{group.name}}</text>
+            <text class="group-progress">({{group.completed}}/{{group.total}})</text>
+          </view>
+          <view class="group-header-right">
+            <text class="group-expand-arrow">{{group.expanded ? '▼' : '▶'}}</text>
+          </view>
+        </view>
+
+        <view class="group-content" wx:if="{{group.expanded}}">
+          <view class="medicine-item" wx:for="{{group.medicines}}" wx:key="slotId" wx:for-item="med">
+            
+            <view class="med-main-info">
+              <view class="med-row-top">
+                <text class="med-time-exact">{{med.time}}</text>
+                <text class="med-name">{{med.name}}</text>
+                <view class="med-tag {{med.tag === '急症用药' ? 'tag-acute' : 'tag-chronic'}}">
+                  {{med.tag}}
+                </view>
+              </view>
+              
+              <view class="med-row-bottom">
+                <text class="med-dosage">{{med.dosage}}</text>
+                <text class="med-instruction" wx:if="{{med.instruction}}"> · {{med.instruction}}</text>
+              </view>
+            </view>
+
+            <view class="med-action">
+              <button 
+                class="action-btn {{med.completed ? 'btn-completed' : 'btn-pending'}}" 
+                bindtap="{{med.completed ? 'showCancelConfirm' : 'markTimeSlotAsCompleted'}}" 
+                data-medicine-id="{{med.medicineId}}"
+                data-timeslot="{{med.slotId}}"
+              >
+                {{med.completed ? '已服 ' + med.markedTime : '标记服用'}}
+              </button>
+            </view>
+
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{reminderList.length === 0}}" class="empty-state">
+      <view class="empty-icon">💊</view>
+      <text class="empty-text">今日暂无用药提醒</text>
+      <button class="add-btn" bindtap="navigateToManage">添加用药提醒</button>
+    </view>
+  </view>
+
+  <view class="modal" wx:if="{{showCancelModal}}">
+    <view class="modal-mask" bindtap="hideCancelModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">取消用药记录</text>
+      </view>
+      <view class="modal-body">
+        <text>确定要取消“{{currentMedicineName}}”的本次用药记录吗？</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideCancelModal">返回</button>
+        <button class="modal-btn confirm" bindtap="cancelMarkAsCompleted">确定取消</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="tab-bar-placeholder"></view>
+</view>

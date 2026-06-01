@@ -1,0 +1,75 @@
+<!-- 全屏闹钟页面 - 重设计版 -->
+<view class="alarm-container">
+  <!-- 动态背景效果 -->
+  <view class="alarm-bg">
+    <view class="bg-circle circle1"></view>
+    <view class="bg-circle circle2"></view>
+    <view class="bg-circle circle3"></view>
+  </view>
+  
+  <!-- 主要内容卡片 -->
+  <view class="alarm-card">
+    <!-- 顶部警示条 -->
+    <view class="alarm-badge">
+      <text class="badge-text">⏰ 用药时间到</text>
+    </view>
+    
+    <!-- 大号闹钟图标 -->
+    <view class="alarm-icon-wrapper">
+      <view class="alarm-icon">⏰</view>
+      <view class="icon-ring ring1"></view>
+      <view class="icon-ring ring2"></view>
+    </view>
+    
+    <!-- 药品名称 - 超大字体 -->
+    <text class="medicine-name">{{medicine.name}}</text>
+    
+    <!-- 药品详情卡片 -->
+    <view class="medicine-detail-card">
+      <view class="detail-item">
+        <text class="detail-label">💊 用量</text>
+        <text class="detail-value">{{medicine.dosageNumber}}{{medicine.dosageUnit}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="detail-label">📅 频次</text>
+        <text class="detail-value">{{medicine.frequencyDisplay}}</text>
+      </view>
+      <view class="detail-item" wx:if="{{medicine.instruction}}">
+        <text class="detail-label">📝 用法</text>
+        <text class="detail-value">{{medicine.instruction}}</text>
+      </view>
+    </view>
+    
+    <!-- 时间显示 -->
+    <view class="time-display">
+      <text class="time-label">计划时间</text>
+      <text class="time-value">{{currentTime}}</text>
+    </view>
+    
+    <!-- 备注信息 -->
+    <view class="notes-box" wx:if="{{medicine.notes}}">
+      <text class="notes-icon">📌</text>
+      <text class="notes-text">{{medicine.notes}}</text>
+    </view>
+    
+    <!-- 操作按钮 - 大号易点击 -->
+    <view class="action-buttons">
+      <button class="btn-taken" bindtap="markAsTaken">
+        <text class="btn-icon">✓</text>
+        <text class="btn-text">我已服用</text>
+      </button>
+      <button class="btn-snooze" bindtap="snooze">
+        <text class="btn-icon">⏱️</text>
+        <text class="btn-text">稍后提醒</text>
+      </button>
+    </view>
+    
+    <!-- 振动提示 -->
+    <view class="vibration-tip" wx:if="{{vibrationEnabled}}">
+      <view class="vibration-wave wave1"></view>
+      <view class="vibration-wave wave2"></view>
+      <view class="vibration-wave wave3"></view>
+      <text class="tip-text">📳 振动提醒中</text>
+    </view>
+  </view>
+</view>

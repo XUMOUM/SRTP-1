@@ -1,0 +1,203 @@
+<view class="privacy-container">
+  <!-- 好友可见性设置 -->
+  <view class="settings-section">
+    <view class="section-header">
+      <text class="section-title">好友权限</text>
+      <text class="section-desc">控制好友能否看到您的用药记录</text>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-left">
+        <view class="setting-icon">👥</view>
+        <view class="setting-info">
+          <text class="setting-text">允许好友查看用药记录</text>
+          <text class="setting-desc">开启后，好友可在监管页面看到您的用药情况</text>
+        </view>
+      </view>
+      <switch class="setting-switch" checked="{{friendVisible}}" bindchange="toggleFriendVisible" color="#667eea" />
+    </view>
+    
+    <view class="setting-tip" wx:if="{{!friendVisible}}">
+      <text class="tip-icon">🔒</text>
+      <text class="tip-text">当前好友不可见您的用药记录</text>
+    </view>
+  </view>
+
+  <!-- 小程序锁设置 -->
+  <view class="settings-section">
+    <view class="section-header">
+      <text class="section-title">小程序锁</text>
+      <text class="section-desc">开启后进入小程序需要验证</text>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-left">
+        <view class="setting-icon">🔐</view>
+        <view class="setting-info">
+          <text class="setting-text">启用小程序锁</text>
+          <text class="setting-desc">保护您的用药隐私安全</text>
+        </view>
+      </view>
+      <switch class="setting-switch" checked="{{lockEnabled}}" bindchange="toggleLockEnabled" color="#667eea" />
+    </view>
+
+    <!-- 锁类型选择（仅当锁启用时显示） -->
+    <view class="lock-options" wx:if="{{lockEnabled}}">
+      <!-- 数字密码选项 -->
+      <view class="option-item {{lockType === 'pin' ? 'active' : ''}}" bindtap="selectLockType" data-type="pin">
+        <view class="option-left">
+          <view class="option-icon">🔢</view>
+          <view class="option-info">
+            <text class="option-title">数字密码</text>
+            <text class="option-desc">6位数字密码，简单易记</text>
+          </view>
+        </view>
+        <view class="option-right">
+          <text class="option-check" wx:if="{{lockType === 'pin'}}">✓</text>
+          <view class="option-actions">
+            <text class="option-set" wx:if="{{lockType === 'pin' && !hasPinPassword}}" bindtap="setPassword" data-type="pin">去设置</text>
+            <text class="option-set" wx:if="{{lockType === 'pin' && hasPinPassword}}" bindtap="modifyPassword" data-type="pin">修改</text>
+            <text class="option-forgot" wx:if="{{lockType === 'pin' && hasPinPassword}}" bindtap="showForgotModal">忘记</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 图形密码选项 -->
+      <view class="option-item {{lockType === 'pattern' ? 'active' : ''}}" bindtap="selectLockType" data-type="pattern">
+        <view class="option-left">
+          <view class="option-icon">🎯</view>
+          <view class="option-info">
+            <text class="option-title">图形密码</text>
+            <text class="option-desc">绘制9点图案，更加安全</text>
+          </view>
+        </view>
+        <view class="option-right">
+          <text class="option-check" wx:if="{{lockType === 'pattern'}}">✓</text>
+          <view class="option-actions">
+            <text class="option-set" wx:if="{{lockType === 'pattern' && !hasPatternPassword}}" bindtap="setPassword" data-type="pattern">去设置</text>
+            <text class="option-set" wx:if="{{lockType === 'pattern' && hasPatternPassword}}" bindtap="modifyPassword" data-type="pattern">修改</text>
+            <text class="option-forgot" wx:if="{{lockType === 'pattern' && hasPatternPassword}}" bindtap="showForgotModal">忘记</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 自动锁屏时间 -->
+      <view class="auto-lock-setting">
+        <text class="auto-lock-label">自动锁屏时间</text>
+        <picker mode="selector" range="{{lockTimeOptions}}" value="{{lockTimeIndex}}" bindchange="onLockTimeChange">
+          <view class="picker-display">
+            <text>{{lockTimeOptions[lockTimeIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设置数字密码弹窗 -->
+  <view class="modal" wx:if="{{showPinModal}}">
+    <view class="modal-mask" bindtap="hidePinModal"></view>
+    <view class="modal-content pin-modal">
+      <view class="modal-header">
+        <text class="modal-title">{{pinModalTitle}}</text>
+      </view>
+      <view class="modal-body">
+        <view class="pin-display">
+          <view class="pin-dot {{pinInput.length >= 1 ? 'filled' : ''}}"></view>
+          <view class="pin-dot {{pinInput.length >= 2 ? 'filled' : ''}}"></view>
+          <view class="pin-dot {{pinInput.length >= 3 ? 'filled' : ''}}"></view>
+          <view class="pin-dot {{pinInput.length >= 4 ? 'filled' : ''}}"></view>
+          <view class="pin-dot {{pinInput.length >= 5 ? 'filled' : ''}}"></view>
+          <view class="pin-dot {{pinInput.length >= 6 ? 'filled' : ''}}"></view>
+        </view>
+        <text class="pin-hint">{{pinHint}}</text>
+        
+        <view class="pin-keyboard">
+          <view class="keyboard-row">
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="1">1</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="2">2</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="3">3</view>
+          </view>
+          <view class="keyboard-row">
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="4">4</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="5">5</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="6">6</view>
+          </view>
+          <view class="keyboard-row">
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="7">7</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="8">8</view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="9">9</view>
+          </view>
+          <view class="keyboard-row">
+            <view class="key-btn empty"></view>
+            <view class="key-btn" bindtap="onPinKeyPress" data-key="0">0</view>
+            <view class="key-btn delete" bindtap="onPinDelete">⌫</view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hidePinModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmPin" disabled="{{pinInput.length !== 6}}">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设置图形密码弹窗 -->
+  <view class="modal" wx:if="{{showPatternModal}}">
+    <view class="modal-mask" bindtap="hidePatternModal"></view>
+    <view class="modal-content pattern-modal">
+      <view class="modal-header">
+        <text class="modal-title">{{patternModalTitle}}</text>
+      </view>
+      <view class="modal-body">
+        <canvas class="pattern-canvas" canvas-id="patternCanvas" bindtouchstart="onPatternTouchStart" bindtouchmove="onPatternTouchMove" bindtouchend="onPatternTouchEnd"></canvas>
+        <text class="pattern-hint">{{patternHint}}</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hidePatternModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmPattern" disabled="{{!patternConfirmed}}">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 忘记密码弹窗 -->
+  <view class="modal" wx:if="{{showForgotModal}}">
+    <view class="modal-mask" bindtap="hideForgotModal"></view>
+    <view class="modal-content forgot-modal">
+      <view class="modal-header">
+        <view class="forgot-icon">🔒</view>
+        <text class="modal-title">忘记密码？</text>
+      </view>
+      <view class="modal-body forgot-body">
+        <view class="warning-icon">⚠️</view>
+        <text class="warning-title">应急数据清除</text>
+        <text class="warning-desc">忘记密码后，您可以通过清除所有数据来重置小程序。此操作将：</text>
+        
+        <view class="warning-list">
+          <view class="warning-item">
+            <text class="warning-bullet">•</text>
+            <text class="warning-text">删除所有缓存数据</text>
+          </view>
+          <view class="warning-item">
+            <text class="warning-bullet">•</text>
+            <text class="warning-text">清除所有用药记录</text>
+          </view>
+          <view class="warning-item">
+            <text class="warning-bullet">•</text>
+            <text class="warning-text">移除所有药品信息</text>
+          </view>
+          <view class="warning-item">
+            <text class="warning-bullet">•</text>
+            <text class="warning-text">恢复小程序到初始状态</text>
+          </view>
+        </view>
+        
+        <text class="warning-note">此操作不可恢复，请谨慎操作！</text>
+      </view>
+      <view class="modal-footer forgot-footer">
+        <button class="modal-btn cancel" bindtap="hideForgotModal">再想想</button>
+        <button class="modal-btn confirm danger" bindtap="resetAllData">清除数据</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,435 @@
+/* ================= 基础全局与字体设置 ================= */
+page {
+  background-color: #F4F7FA; /* 更显干净的灰蓝色护眼背景 */
+  /* 强制使用系统级无衬线字体，数字显示更美观，逻辑感更强 */
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", sans-serif;
+  color: #333333;
+}
+
+.container {
+  padding-bottom: 60rpx;
+}
+
+/* ================= 1. 顶部数据看板 (沉浸式渐变) ================= */
+.header-section {
+  background: linear-gradient(135deg, #3A8BFF 0%, #1168E8 100%);
+  padding: 50rpx 40rpx 70rpx;
+  color: #FFFFFF;
+  border-radius: 0 0 48rpx 48rpx;
+  box-shadow: 0 16rpx 40rpx rgba(17, 104, 232, 0.15);
+}
+
+.subtitle-container {
+  margin-bottom: 30rpx;
+}
+
+.app-subtitle {
+  font-size: 24rpx;
+  opacity: 0.8;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.time-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.current-time {
+  font-size: 72rpx;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 2rpx;
+  text-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.current-date {
+  font-size: 26rpx;
+  opacity: 0.85;
+  margin-top: 12rpx;
+}
+
+.app-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+/* 顶部统计条 - 玻璃拟物化质感 */
+.header-stats {
+  display: flex;
+  margin-top: 50rpx;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border-radius: 24rpx;
+  padding: 30rpx 0;
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.stat-item:first-child::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 2rpx;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stat-number-container {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+}
+
+.stat-number {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.stat-divider {
+  font-size: 26rpx;
+  margin: 0 6rpx;
+  opacity: 0.6;
+}
+
+.stat-total {
+  font-size: 26rpx;
+  opacity: 0.6;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  margin-top: 8rpx;
+  display: block;
+  opacity: 0.8;
+}
+
+/* ================= 2. 核心内容区：时间轴逻辑分组 ================= */
+.today-reminder {
+  padding: 0 32rpx;
+  margin-top: -40rpx; /* 向上悬浮，打破水平切割线 */
+  position: relative;
+  z-index: 10;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding: 0 8rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1F2329;
+}
+
+.reminder-count {
+  background: #E8F3FF;
+  color: #1168E8;
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+/* 分组大卡片 */
+.period-group {
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(28, 35, 47, 0.03);
+  overflow: hidden;
+  border: 2rpx solid #F0F2F5;
+}
+
+/* 分组表头：强调层级 */
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  background: #FAFBFC;
+  transition: background-color 0.2s;
+}
+
+.group-header:active {
+  background-color: #F2F4F7;
+}
+
+.group-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.group-icon {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+}
+
+.group-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1F2329;
+  margin-right: 12rpx;
+}
+
+.group-progress {
+  font-size: 28rpx;
+  color: #8F959E;
+  font-weight: 500;
+}
+
+.group-expand-arrow {
+  color: #C2C7CC;
+  font-size: 24rpx;
+}
+
+/* ================= 3. 药品明细项 ================= */
+.group-content {
+  background: #FFFFFF;
+  padding: 0 32rpx;
+}
+
+.medicine-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 36rpx 0;
+  border-bottom: 2rpx solid #F0F2F5;
+}
+
+.medicine-item:last-child {
+  border-bottom: none;
+}
+
+.med-main-info {
+  flex: 1;
+  padding-right: 24rpx;
+}
+
+.med-row-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  flex-wrap: wrap;
+  gap: 12rpx; /* 使用 gap 替代 margin，排版更工整 */
+}
+
+/* 极其醒目的时间显示 */
+.med-time-exact {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #1168E8;
+  font-family: -apple-system, sans-serif;
+}
+
+.med-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1F2329;
+}
+
+/* 知识图谱标签 - 视觉锚点 */
+.med-tag {
+  font-size: 20rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.tag-acute {
+  background: #FFF1F0;
+  color: #F5222D;
+}
+
+.tag-chronic {
+  background: #E6F7FF;
+  color: #096DD9;
+}
+
+/* 用量说明 - 弱化视觉权重 */
+.med-row-bottom {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #646A73;
+}
+
+.med-dosage {
+  background: #F4F5F7;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+  color: #1F2329;
+}
+
+.med-instruction {
+  margin-left: 12rpx;
+}
+
+/* ================= 4. 操作交互按钮 ================= */
+.med-action {
+  flex-shrink: 0;
+}
+
+.action-btn {
+  margin: 0;
+  font-size: 28rpx;
+  padding: 0 36rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  border-radius: 34rpx;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+/* 待服用状态：唤起行动 */
+.btn-pending {
+  background: #07C160; /* 采用微信生态认知度最高的行动绿 */
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 16rpx rgba(7, 193, 96, 0.2);
+}
+
+.btn-pending:active {
+  transform: scale(0.96);
+  background: #06AD56;
+}
+
+/* 已服用状态：视觉静默 */
+.btn-completed {
+  background: #F4F5F7;
+  color: #A4A9B3;
+  box-shadow: none;
+}
+
+/* ================= 5. 弹窗与空状态 ================= */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  opacity: 0.4;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  color: #8F959E;
+  font-size: 28rpx;
+  margin-bottom: 48rpx;
+}
+
+.add-btn {
+  background: #1168E8;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 0 80rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  box-shadow: 0 12rpx 24rpx rgba(17, 104, 232, 0.2);
+}
+
+.add-btn::after {
+  border: none;
+}
+
+/* 弹窗设计：圆润轻盈 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+}
+
+.modal-mask {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 75%;
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.15);
+}
+
+.modal-header {
+  padding: 40rpx 30rpx 20rpx;
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1F2329;
+}
+
+.modal-body {
+  padding: 10rpx 50rpx 50rpx;
+  text-align: center;
+  font-size: 30rpx;
+  color: #646A73;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 2rpx solid #F0F2F5;
+  background: #FAFBFC;
+}
+
+.modal-btn {
+  flex: 1;
+  background: none;
+  font-size: 32rpx;
+  padding: 36rpx 0;
+  border-radius: 0;
+  margin: 0;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.modal-btn::after {
+  border: none;
+}
+
+.modal-btn.cancel {
+  color: #8F959E;
+  border-right: 2rpx solid #F0F2F5;
+}
+
+.modal-btn.confirm {
+  color: #F5222D; /* 确认取消操作采用红色警示 */
+}

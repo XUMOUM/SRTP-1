@@ -1,0 +1,265 @@
+<view class="manage-container">
+  <!-- 顶部标题 -->
+  <view class="manage-header">
+    <text class="manage-title">用药管理</text>
+    <text class="manage-subtitle">管理您的用药计划</text>
+  </view>
+
+  <!-- 添加用药按钮 -->
+  <view class="add-medicine-section">
+    <button class="add-btn" bindtap="showAddOptions">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加用药提醒</text>
+    </button>
+  </view>
+
+  <!-- 用药列表 -->
+  <view class="medicine-list">
+    <!-- 按频次分组的折叠列表 -->
+    <view wx:for="{{groupedMedicine}}" wx:key="frequency" class="med-group">
+      <!-- 分组标题 -->
+      <view class="group-header" bindtap="toggleGroup" data-freq="{{item.frequency}}">
+        <view class="group-header-left">
+          <text class="group-header-icon">{{item.expanded ? '📂' : '📁'}}</text>
+          <text class="group-header-text">{{item.label}}</text>
+          <text class="group-header-count">{{item.count}}项</text>
+        </view>
+        <view class="group-header-arrow">{{item.expanded ? '▼' : '▶'}}</view>
+      </view>
+
+      <!-- 分组内容 -->
+      <view class="group-items" wx:if="{{item.expanded}}">
+        <view wx:for="{{item.items}}" wx:key="id" class="medicine-item">
+          <view class="medicine-info">
+            <view class="medicine-header">
+              <view class="pill-icon">{{item.icon || '💊'}}</view>
+              <text class="medicine-name">{{item.name}}</text>
+            </view>
+            <view class="medicine-details">
+              <text class="dosage">{{item.dosageNumber}}{{item.dosageUnit}}</text>
+              <text class="instruction" wx:if="{{item.instruction}}"> · {{item.instruction}}</text>
+            </view>
+            <view class="medicine-schedule">
+              <text class="schedule-time" wx:for="{{item.times}}" wx:key="*this">{{item}}</text>
+            </view>
+            <view class="medicine-notes" wx:if="{{item.notes}}">
+              <text class="notes-label">备注：</text>
+              <text class="notes-content">{{item.notes}}</text>
+            </view>
+          </view>
+          <view class="medicine-actions">
+            <button class="action-btn edit" bindtap="showEditModal" data-id="{{item.id}}">编辑</button>
+            <button class="action-btn delete" bindtap="showDeleteConfirm" data-id="{{item.id}}">删除</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{medicineList.length === 0}}" class="empty-state">
+      <view class="empty-icon">💊</view>
+      <text class="empty-text">暂无用药提醒</text>
+      <text class="empty-hint">点击上方按钮添加您的第一个用药提醒</text>
+    </view>
+  </view>
+
+  <!-- 添加/编辑用药弹窗 -->
+  <view class="modal" wx:if="{{showMedicineModal}}">
+    <view class="modal-mask" bindtap="hideMedicineModal"></view>
+    <view class="modal-content medicine-modal">
+      <view class="modal-header">
+        <text class="modal-title">{{isEditing ? '编辑用药' : '添加用药'}}</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">药品名称</text>
+          <input class="form-input" value="{{currentMedicine.name}}" placeholder="请输入药品名称" bindinput="onNameInput" />
+        </view>
+        
+        <view class="form-row">
+          <view class="form-group half">
+            <text class="form-label">每次用量</text>
+            <input class="form-input {{dosageNumberError ? 'error-input' : ''}}" 
+                   value="{{currentMedicine.dosageNumber}}" 
+                   placeholder="如：1" 
+                   bindinput="onDosageNumberInput" />
+            <text class="form-hint">请输入数字</text>
+          </view>
+          <view class="form-group half">
+            <text class="form-label">单位</text>
+            <input class="form-input" value="{{currentMedicine.dosageUnit}}" placeholder="如：片、粒" bindinput="onDosageUnitInput" />
+          </view>
+        </view>
+
+        <view class="form-row">
+          <view class="form-group half">
+            <text class="form-label">服用方式</text>
+            <picker range="{{instructionOptions}}" value="{{instructionIndex}}" bindchange="onInstructionChange">
+              <view class="picker-display {{!currentMedicine.instruction ? 'placeholder' : ''}}">
+                {{currentMedicine.instruction || '选择服用方式'}}
+              </view>
+            </picker>
+          </view>
+          <view class="form-group half">
+            <text class="form-label">每日次数</text>
+            <input class="form-input {{frequencyError ? 'error-input' : ''}}" 
+                   value="{{currentMedicine.frequency}}" 
+                   placeholder="如：2" 
+                   bindinput="onFrequencyInput" />
+            <text class="form-hint">请输入1-10的数字</text>
+          </view>
+        </view>
+
+        <!-- 动态时间选择器 -->
+        <view class="form-group">
+          <text class="form-label">用药时间</text>
+          <view class="time-picker-list">
+            <view class="time-picker-item" wx:for="{{currentMedicine.times}}" wx:key="index" wx:for-index="timeIndex">
+              <text class="time-label">时间{{timeIndex + 1}}</text>
+              <picker mode="time" value="{{item}}" bindchange="onTimeChange" data-index="{{timeIndex}}">
+                <view class="picker-display {{!item ? 'placeholder' : ''}}">
+                  {{item || '选择时间'}}
+                </view>
+              </picker>
+              <button class="remove-time-btn" wx:if="{{currentMedicine.times.length > 1}}" bindtap="removeTimePicker" data-index="{{timeIndex}}">删除</button>
+            </view>
+          </view>
+          <button class="add-time-btn" wx:if="{{currentMedicine.times.length < 10}}" bindtap="addTimePicker">+ 添加用药时间</button>
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">用药备注</text>
+          <textarea class="form-textarea" value="{{currentMedicine.notes}}" placeholder="请输入用药备注（可选）" bindinput="onNotesInput" maxlength="100" />
+          <text class="char-count">{{currentMedicine.notes ? currentMedicine.notes.length : 0}}/100</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideMedicineModal">取消</button>
+        <button class="modal-btn confirm" bindtap="{{isEditing ? 'updateMedicine' : 'addMedicine'}}">
+          {{isEditing ? '保存修改' : '添加'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view class="modal" wx:if="{{showDeleteModal}}">
+    <view class="modal-mask" bindtap="hideDeleteModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">删除用药提醒</text>
+      </view>
+      <view class="modal-body">
+        <text>确定要删除"{{currentMedicineName}}"的用药提醒吗？此操作不可恢复。</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideDeleteModal">取消</button>
+        <button class="modal-btn confirm" bindtap="deleteMedicine">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑确认弹窗 -->
+  <view class="modal" wx:if="{{showEditConfirmModal}}">
+    <view class="modal-mask" bindtap="hideEditConfirmModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">确认修改</text>
+      </view>
+      <view class="modal-body">
+        <text>确定要修改"{{currentMedicineName}}"的用药提醒吗？</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideEditConfirmModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmUpdateMedicine">确定修改</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- OCR识别结果弹窗 -->
+  <view class="modal" wx:if="{{showOCRModal}}">
+    <view class="modal-mask" bindtap="hideOCRModal"></view>
+    <view class="modal-content ocr-modal">
+      <view class="modal-header">
+        <text class="modal-title">OCR识别结果</text>
+        <text class="modal-subtitle">beta版</text>
+      </view>
+      <view class="modal-body">
+        <scroll-view scroll-y class="ocr-result-scroll">
+          <text class="ocr-result-text">{{ocrResultText}}</text>
+        </scroll-view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideOCRModal">关闭</button>
+        <button class="modal-btn confirm" bindtap="useOCRResult">使用此结果</button>
+      </view>
+    </view>
+  </view>
+
+<!-- AI解析结果预览弹窗 - 删除模式 -->
+<view class="modal" wx:if="{{showParsedResultModal}}">
+  <view class="modal-mask" bindtap="hideParsedModal"></view>
+  <view class="modal-content parsed-modal">
+    <!-- 标题区 -->
+    <view class="modal-header">
+      <text class="modal-title">识别到以下药品</text>
+      <text class="modal-subtitle">{{parsedMedicines.length}}种</text>
+    </view>
+    
+    <!-- 操作提示 -->
+    <view class="action-tip">
+      <text class="tip-text">点击右侧❌可删除不需要的药品</text>
+    </view>
+    
+    <!-- 药品列表 -->
+    <view class="modal-body">
+      <scroll-view scroll-y class="parsed-list">
+        <view class="medicine-card" 
+              wx:for="{{parsedMedicines}}" 
+              wx:key="index" 
+              data-index="{{index}}">
+          
+          <!-- 左侧序号 -->
+          <view class="card-left">
+            <view class="card-index">{{index + 1}}</view>
+          </view>
+          
+          <!-- 中间内容 -->
+          <view class="card-content">
+            <view class="card-header">
+              <text class="card-name">{{item.name}}</text>
+              <text class="card-frequency">{{item.frequency}}次/日</text>
+            </view>
+            <view class="card-details">
+              <text>用量：{{item.dosageNumber}}{{item.dosageUnit}}</text>
+              <text wx:if="{{item.instruction}}"> ｜ {{item.instruction}}</text>
+            </view>
+            <view class="card-times">
+              时间：{{item.times.join('、')}}
+            </view>
+          </view>
+          
+          <!-- 右侧删除按钮 -->
+          <view class="card-delete" bindtap="deleteMedicineItem" data-index="{{index}}">
+            <text class="delete-icon">✕</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    
+    <!-- 底部按钮 - 直接添加所有剩余药品 -->
+    <view class="modal-footer">
+      <button class="modal-btn cancel" bindtap="hideParsedModal">取消</button>
+      <button class="modal-btn confirm batch-add-btn" bindtap="addAllMedicines">
+        添加所有 ({{parsedMedicines.length}})
+      </button>
+    </view>
+  </view>
+</view>
+
+  <!-- 错误提示弹窗 -->
+  <view class="error-toast {{showErrorToast ? 'show' : ''}}">
+    <view class="error-icon">⚠️</view>
+    <text class="error-message">{{errorMessage}}</text>
+  </view>
+</view>
