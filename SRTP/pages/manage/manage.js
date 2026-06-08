@@ -1,6 +1,10 @@
+// 引入SyncManager实现离线优先数据同步
+const syncManager = require('../../utils/syncManager.js');
+
 Page({
   data: {
     medicineList: [],
+    groupedMedicine: [],
     showMedicineModal: false,
     showDeleteModal: false,
     showEditConfirmModal: false,
@@ -17,7 +21,7 @@ Page({
       notes: ''
     },
     currentMedicineName: '',
-    instructionOptions: ['饭前服用', '饭后服用', '随餐服用', '无特殊要求', '其他'],
+    instructionOptions: ['饭前服用', '饭后服用', '随餐服用', '空腹服用', '睡前服用', '晨起服用', '必要时服用', '无特殊要求'],
     instructionIndex: 0,
     originalMedicineData: null,
     showErrorToast: false,
@@ -29,7 +33,11 @@ Page({
     ocrResultText: '',
     // AI解析结果相关变量
     parsedMedicines: [],
-    showParsedResultModal: false
+    showParsedResultModal: false,
+    // 加载状态
+    loading: false,
+    // 云端同步状态
+    syncStatus: 'synced' // synced | pending | error
   },
 
   onLoad: function() {
@@ -38,57 +46,91 @@ Page({
 
   onShow: function() {
     this.loadMedicineList();
+    this.checkSyncStatus();
   },
 
-  // 加载药品列表
-  loadMedicineList: function() {
-    var medicineList = wx.getStorageSync('medicineList') || [];
-    
-    if (medicineList.length === 0) {
-      medicineList = [
-        {
-          id: 1,
-          name: '阿司匹林肠溶片',
-          dosageNumber: '1',
-          dosageUnit: '片',
-          instruction: '饭后服用',
-          times: ['08:00'],
-          frequency: '1',
-          frequencyDisplay: '1次/日',
-          notes: ''
-        },
-        {
-          id: 2,
-          name: '降压药',
-          dosageNumber: '1',
-          dosageUnit: '粒',
-          instruction: '饭前服用',
-          times: ['07:30'],
-          frequency: '1',
-          frequencyDisplay: '1次/日',
-          notes: '血压稳定时服用'
-        },
-        {
-          id: 3,
-          name: '维生素C',
-          dosageNumber: '2',
-          dosageUnit: '粒',
-          instruction: '随餐服用',
-          times: ['12:00'],
-          frequency: '1',
-          frequencyDisplay: '1次/日',
-          notes: ''
-        }
-      ];
-      wx.setStorageSync('medicineList', medicineList);
+  // ================= 数据加载（离线优先） =================
+
+  /**
+   * 加载药品列表（离线优先 + 云端同步）
+   */
+  loadMedicineList: async function() {
+    this.setData({ loading: true });
+
+    try {
+      // 1. 优先从本地加载（即时响应）
+      let medicineList = wx.getStorageSync('medicineList') || [];
+
+      // 2. 如果没有本地数据，使用默认值
+      if (medicineList.length === 0) {
+        medicineList = [
+          {
+            id: 1,
+            name: '阿司匹林肠溶片',
+            dosageNumber: '1',
+            dosageUnit: '片',
+            instruction: '饭后服用',
+            times: ['08:00'],
+            frequency: '1',
+            frequencyDisplay: '1次/日',
+            notes: ''
+          },
+          {
+            id: 2,
+            name: '降压药',
+            dosageNumber: '1',
+            dosageUnit: '粒',
+            instruction: '饭前服用',
+            times: ['07:30'],
+            frequency: '1',
+            frequencyDisplay: '1次/日',
+            notes: '血压稳定时服用'
+          },
+          {
+            id: 3,
+            name: '维生素C',
+            dosageNumber: '2',
+            dosageUnit: '粒',
+            instruction: '随餐服用',
+            times: ['12:00'],
+            frequency: '1',
+            frequencyDisplay: '1次/日',
+            notes: ''
+          }
+        ];
+        wx.setStorageSync('medicineList', medicineList);
+        
+        // 首次初始化后同步到云端
+        this.syncAllMedicinesToCloud(medicineList);
+      }
+
+      // 3. 更新UI
+      this.updateMedicineList(medicineList);
+
+      // 4. 后台同步云端数据
+      this.syncFromCloud();
+
+    } catch (e) {
+      console.error('[manage] 加载药品列表失败:', e);
+      this.showError('加载数据失败，请重试');
+    } finally {
+      this.setData({ loading: false });
     }
-    
+  },
+
+  /**
+   * 更新药品列表UI
+   */
+  updateMedicineList: function(medicineList) {
     this.setData({
+      medicineList: medicineList,
       groupedMedicine: this.groupByFrequency(medicineList)
     });
   },
 
-  // ⭐ 按频次折叠分组
+  /**
+   * 按频次分组
+   */
   groupByFrequency: function(medicineList) {
     var groups = {};
     var groupsOrder = [];
@@ -107,7 +149,7 @@ Page({
         };
         groupsOrder.push(freq);
       }
-      // 把时间格式化成简写标签
+      
       var timesStr = (med.times || ['08:00']).map(function(t) {
         return t.length >= 5 ? t.slice(0, 2) + ':' + t.slice(3, 5) : t;
       }).join(', ');
@@ -120,14 +162,6 @@ Page({
       groups[freq].count++;
     });
 
-    // 还原原有的 link 关系（如果存在）
-    medicineList.forEach(function(med) {
-      var freq = med.frequency || '1';
-      if (groups[freq]) {
-        groups[freq].link = (med.link ? med.link.split(',') : []).filter(function(l) { return l; }).join('→') || '';
-      }
-    });
-
     var result = [];
     var sortedKeys = ['3', '2', '1', '0.5', '0.25'];
     for (var i = 0; i < sortedKeys.length; i++) {
@@ -135,7 +169,6 @@ Page({
         result.push(groups[sortedKeys[i]]);
       }
     }
-    // 添加未被排序覆盖的
     for (var key in groups) {
       if (sortedKeys.indexOf(key) < 0) {
         result.push(groups[key]);
@@ -145,7 +178,76 @@ Page({
     return result;
   },
 
-  // ⭐ 展开/折叠分组
+  /**
+   * 从云端同步数据
+   */
+  syncFromCloud: async function() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'syncData',
+        data: {
+          action: 'syncFromCloud',
+          keyPrefix: 'medicine_',
+          localTimestamp: 0
+        }
+      });
+
+      if (res.result.success && res.result.data && res.result.data.length > 0) {
+        // 合并云端数据到本地
+        const cloudData = res.result.data;
+        console.log('[manage] 从云端加载到', cloudData.length, '条数据');
+        
+        // 这里可以实现更复杂的合并逻辑
+        this.setData({ syncStatus: 'synced' });
+      }
+    } catch (e) {
+      console.warn('[manage] 云端同步失败:', e);
+      this.setData({ syncStatus: 'error' });
+    }
+  },
+
+  /**
+   * 检查同步状态
+   */
+  checkSyncStatus: function() {
+    const keys = wx.getStorageInfoSync().keys || [];
+    let pendingCount = 0;
+    
+    keys.forEach(key => {
+      if (key.startsWith('medicine_')) {
+        try {
+          const data = wx.getStorageSync(key);
+          if (data && data._syncStatus === 'pending') {
+            pendingCount++;
+          }
+        } catch (e) {}
+      }
+    });
+
+    this.setData({
+      syncStatus: pendingCount > 0 ? 'pending' : 'synced'
+    });
+
+    // 尝试同步
+    if (pendingCount > 0) {
+      syncManager.forceSync();
+    }
+  },
+
+  /**
+   * 批量同步所有药品到云端
+   */
+  syncAllMedicinesToCloud: function(medicineList) {
+    medicineList.forEach(med => {
+      const key = 'medicine_' + med.id;
+      syncManager.write(key, med).catch(err => {
+        console.warn('[manage] 同步药品失败:', med.name, err);
+      });
+    });
+  },
+
+  // ================= 分组展开/折叠 =================
+
   toggleGroup: function(e) {
     var freq = e.currentTarget.dataset.freq;
     var list = this.data.groupedMedicine;
@@ -158,18 +260,11 @@ Page({
     this.setData({ groupedMedicine: list });
   },
 
-  // 保存药品列表
-  saveMedicineList: function(medicineList) {
-    wx.setStorageSync('medicineList', medicineList);
-    this.setData({
-      medicineList: medicineList,
-      groupedMedicine: this.groupByFrequency(medicineList)
-    });
-  },
+  // ================= 添加药品 =================
 
   showAddOptions: function() {
     wx.showActionSheet({
-      itemList: ['手动输入用药信息', 'OCR识别处方 (beta)'],
+      itemList: ['手动输入用药信息', 'OCR识别处方 (AI解析)'],
       success: (res) => {
         switch(res.tapIndex) {
           case 0:
@@ -182,6 +277,31 @@ Page({
       }
     });
   },
+
+  showAddModal: function() {
+    this.setData({
+      showMedicineModal: true,
+      isEditing: false,
+      currentMedicine: {
+        id: null,
+        name: '',
+        dosageNumber: '',
+        dosageUnit: '',
+        instruction: '',
+        times: ['08:00'],
+        frequency: '',
+        frequencyDisplay: '',
+        notes: ''
+      },
+      instructionIndex: 0,
+      showErrorToast: false,
+      dosageNumberError: false,
+      frequencyError: false,
+      originalMedicineData: null
+    });
+  },
+
+  // ================= OCR识别（集成新版AI解析） =================
 
   chooseImageSource: function() {
     wx.showActionSheet({
@@ -244,121 +364,340 @@ Page({
     });
   },
 
+  hideOCRModal: function() {
+    this.setData({ showOCRModal: false, ocrResultText: '' });
+  },
+
+  useOCRResult: function() {
+    this.setData({ showOCRModal: false });
+    this.parseWithAI(this.data.ocrResultText);
+  },
+
+  /**
+   * AI解析OCR文本（集成新版校验）
+   */
   parseWithAI: function(ocrText) {
     wx.showLoading({ title: 'AI解析中...', mask: true });
+    
     wx.cloud.callFunction({
       name: 'parseMedicineByAI',
       data: { ocrText: ocrText },
       success: (res) => {
         wx.hideLoading();
-        if (res.result && res.result.success) {
-          const medicines = res.result.medicines;
+        const result = res.result;
+        
+        if (result.success) {
+          const medicines = result.medicines;
+          
           if (medicines && medicines.length > 0) {
-            this.setData({ parsedMedicines: medicines, showParsedResultModal: true });
-            wx.showToast({ title: `解析到${medicines.length}种药品`, icon: 'success' });
+            // 有校验警告时提示用户
+            if (result.hasValidationWarning) {
+              wx.showModal({
+                title: '解析完成（需核对）',
+                content: result.message || '处方已解析，但部分内容可能需要核对，请检查药品信息',
+                showCancel: false,
+                success: () => {
+                  this.setData({ 
+                    parsedMedicines: medicines, 
+                    showParsedResultModal: true 
+                  });
+                }
+              });
+            } else {
+              this.setData({ 
+                parsedMedicines: medicines, 
+                showParsedResultModal: true 
+              });
+              wx.showToast({ title: `解析到${medicines.length}种药品`, icon: 'success' });
+            }
           } else {
-            wx.showModal({ title: '解析失败', content: '未能从处方中识别到药品信息', showCancel: false });
+            wx.showModal({ 
+              title: '解析失败', 
+              content: '未能从处方中识别到药品信息，请手动输入', 
+              showCancel: false 
+            });
           }
+        } else if (result.fallback) {
+          // ⭐ Schema校验失败，触发fallback手动输入
+          wx.showModal({
+            title: '自动解析失败',
+            content: result.error || '处方解析存在错误，建议手动输入',
+            confirmText: '手动输入',
+            cancelText: '取消',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                // 预填充OCR识别的原始文本到备注
+                this.setData({
+                  showMedicineModal: true,
+                  isEditing: false,
+                  currentMedicine: {
+                    id: null,
+                    name: '',
+                    dosageNumber: '',
+                    dosageUnit: '',
+                    instruction: '',
+                    times: ['08:00'],
+                    frequency: '',
+                    frequencyDisplay: '',
+                    notes: '原始OCR：' + ocrText.substring(0, 100) + (ocrText.length > 100 ? '...' : '')
+                  }
+                });
+              }
+            }
+          });
+        } else {
+          wx.showModal({ 
+            title: '解析失败', 
+            content: result.error || '请检查网络后重试', 
+            showCancel: false 
+          });
         }
       },
       fail: (err) => {
         wx.hideLoading();
-        wx.showModal({ title: '网络错误', content: '请检查网络后重试', showCancel: false });
+        wx.showModal({ 
+          title: '网络错误', 
+          content: '请检查网络后重试', 
+          showCancel: false 
+        });
       }
     });
   },
 
-  showOCRResult: function(ocrData) { /* 保留原有逻辑 */ },
-  hideOCRModal: function() { this.setData({ showOCRModal: false, ocrResultText: '' }); },
-  useOCRResult: function() { this.setData({ showOCRModal: false }); this.parseWithAI(this.data.ocrResultText); },
-  deleteMedicineItem: function(e) { /* 保留原有逻辑 */ },
-  addAllMedicines: function() { /* 保留原有逻辑，这里未来也可以接入禁忌分析 */ },
-  hideParsedModal: function() { this.setData({ showParsedResultModal: false, parsedMedicines: [] }); },
+  hideParsedModal: function() {
+    this.setData({ showParsedResultModal: false, parsedMedicines: [] });
+  },
 
-  showAddModal: function() {
-    this.setData({
-      showMedicineModal: true,
-      isEditing: false,
-      currentMedicine: {
-        id: null, name: '', dosageNumber: '', dosageUnit: '', instruction: '', times: ['08:00'], frequency: '', frequencyDisplay: '', notes: ''
-      },
-      instructionIndex: 0, showErrorToast: false, dosageNumberError: false, frequencyError: false
+  /**
+   * 添加所有解析的药品
+   */
+  addAllMedicines: function() {
+    const medicines = this.data.parsedMedicines;
+    if (!medicines || medicines.length === 0) return;
+
+    let addedCount = 0;
+    let currentMedicineList = this.data.medicineList;
+
+    medicines.forEach(med => {
+      // 跳过有校验错误的
+      if (med._hasValidationError) {
+        console.warn('[manage] 跳过有校验错误的药品:', med._validationErrors);
+        return;
+      }
+
+      // 检查是否已存在
+      const exists = currentMedicineList.some(item => 
+        item.name === med.name && 
+        item.dosageNumber === med.dosageNumber
+      );
+
+      if (!exists) {
+        const newId = currentMedicineList.length > 0 
+          ? Math.max(...currentMedicineList.map(m => m.id)) + 1 
+          : 1;
+
+        const frequencyNum = parseInt(med.frequency) || 1;
+
+        currentMedicineList.push({
+          id: newId,
+          name: med.name,
+          dosageNumber: med.dosageNumber,
+          dosageUnit: med.dosageUnit,
+          instruction: med.instruction || '无特殊要求',
+          times: med.times || ['08:00'],
+          frequency: frequencyNum.toString(),
+          frequencyDisplay: frequencyNum + '次/日',
+          notes: med.notes || ''
+        });
+
+        addedCount++;
+      }
+    });
+
+    // 保存
+    this.saveMedicineList(currentMedicineList);
+    this.hideParsedModal();
+
+    wx.showToast({ 
+      title: `已添加${addedCount}种药品`, 
+      icon: 'success' 
     });
   },
 
+  // ================= 编辑药品（修复数据回显） =================
+
+  /**
+   * 显示编辑弹窗（修复版：正确回显数据）
+   */
   showEditModal: function(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = parseInt(e.currentTarget.dataset.id, 10);
     const medicineList = this.data.medicineList;
+    
+    // 找到要编辑的药品
     const medicine = medicineList.find(item => item.id === id);
-    if (medicine) {
-      this.setData({ originalMedicineData: JSON.parse(JSON.stringify(medicine)) });
-      const instructionIndex = this.data.instructionOptions.findIndex(item => item === medicine.instruction);
-      const frequencyNumber = medicine.frequencyDisplay ? medicine.frequencyDisplay.replace('次/日', '') : medicine.frequency;
-      this.setData({
-        showMedicineModal: true, isEditing: true, currentMedicine: { ...medicine, frequency: frequencyNumber },
-        instructionIndex: instructionIndex >= 0 ? instructionIndex : 0, showErrorToast: false
-      });
+    
+    if (!medicine) {
+      wx.showToast({ title: '药品不存在', icon: 'none' });
+      return;
     }
+
+    // 深拷贝，避免引用问题
+    const medicineCopy = JSON.parse(JSON.stringify(medicine));
+
+    // 计算instruction的下标
+    const instructionIndex = this.data.instructionOptions.findIndex(
+      item => item === medicineCopy.instruction
+    );
+
+    // 提取frequency的数字部分
+    let frequencyNumber = medicineCopy.frequency;
+    if (medicineCopy.frequencyDisplay) {
+      const match = medicineCopy.frequencyDisplay.match(/(\d+)/);
+      if (match) frequencyNumber = match[1];
+    }
+
+    this.setData({
+      showMedicineModal: true,
+      isEditing: true,
+      currentMedicine: {
+        ...medicineCopy,
+        frequency: frequencyNumber  // 确保是数字字符串
+      },
+      instructionIndex: instructionIndex >= 0 ? instructionIndex : 0,
+      showErrorToast: false,
+      dosageNumberError: false,
+      frequencyError: false,
+      originalMedicineData: medicineCopy  // 保存原始数据用于对比
+    });
+
+    console.log('[manage] 编辑模式，当前数据:', this.data.currentMedicine);
   },
 
-  hideMedicineModal: function() { this.setData({ showMedicineModal: false }); },
-  showDeleteConfirm: function(e) { /* 保留原有逻辑 */ },
-  hideDeleteModal: function() { this.setData({ showDeleteModal: false }); },
-  hideEditConfirmModal: function() { this.setData({ showEditConfirmModal: false }); },
-  hideErrorToast: function() { this.setData({ showErrorToast: false }); },
+  /**
+   * 更新药品（修复版：正确处理更新逻辑）
+   */
+  updateMedicine: function() {
+    const medicine = this.data.currentMedicine;
+    
+    // 校验
+    if (!this.validateMedicine(medicine)) {
+      return;
+    }
 
-  onNameInput: function(e) { this.setData({ 'currentMedicine.name': e.detail.value }); },
-  onDosageNumberInput: function(e) { /* 保留原有逻辑 */ this.setData({ 'currentMedicine.dosageNumber': e.detail.value }); },
-  onDosageUnitInput: function(e) { this.setData({ 'currentMedicine.dosageUnit': e.detail.value }); },
-  onInstructionChange: function(e) {
-    const index = e.detail.value;
-    this.setData({ instructionIndex: index, 'currentMedicine.instruction': this.data.instructionOptions[index] });
-  },
-  onTimeChange: function(e) {
-    const index = e.currentTarget.dataset.index;
-    const value = e.detail.value;
-    const times = [...this.data.currentMedicine.times];
-    times[index] = value;
-    this.setData({ 'currentMedicine.times': times });
-  },
-  addTimePicker: function() { /* 保留原有逻辑 */ },
-  removeTimePicker: function(e) { /* 保留原有逻辑 */ },
-  onFrequencyInput: function(e) { this.setData({ 'currentMedicine.frequency': e.detail.value }); },
-  onNotesInput: function(e) { this.setData({ 'currentMedicine.notes': e.detail.value }); },
-  
-  showError: function(message) {
-    this.setData({ showErrorToast: true, errorMessage: message });
-    setTimeout(() => { this.setData({ showErrorToast: false }); }, 3000);
+    // 检查是否有修改
+    const original = this.data.originalMedicineData;
+    const hasChanges = JSON.stringify(medicine) !== JSON.stringify(original);
+
+    if (!hasChanges) {
+      wx.showToast({ title: '未做任何修改', icon: 'none' });
+      this.hideMedicineModal();
+      return;
+    }
+
+    // 显示确认弹窗
+    this.setData({
+      showEditConfirmModal: true,
+      currentMedicineName: medicine.name
+    });
   },
 
-  // ================= 核心重构区域：集成知识图谱查杀 =================
+  /**
+   * 确认更新
+   */
+  confirmUpdateMedicine: function() {
+    const medicine = this.data.currentMedicine;
+    const medicineList = this.data.medicineList;
 
+    // 找到并更新
+    const index = medicineList.findIndex(item => item.id === medicine.id);
+    
+    if (index === -1) {
+      wx.showToast({ title: '药品不存在', icon: 'none' });
+      this.hideEditConfirmModal();
+      return;
+    }
+
+    // 构建更新后的数据
+    const frequencyNum = parseInt(medicine.frequency) || 1;
+    const updatedMedicine = {
+      ...medicine,
+      frequency: frequencyNum.toString(),
+      frequencyDisplay: frequencyNum + '次/日',
+      updateTime: Date.now()
+    };
+
+    // 更新列表
+    medicineList[index] = updatedMedicine;
+
+    // 保存
+    this.saveMedicineList(medicineList);
+
+    this.hideEditConfirmModal();
+    this.hideMedicineModal();
+    
+    wx.showToast({ title: '修改成功', icon: 'success' });
+  },
+
+  // ================= 添加/保存药品 =================
+
+  /**
+   * 校验药品数据
+   */
+  validateMedicine: function(medicine) {
+    if (!medicine.name || medicine.name.trim() === '') {
+      this.showError('请输入药品名称');
+      return false;
+    }
+
+    if (!medicine.dosageNumber || medicine.dosageNumber.trim() === '') {
+      this.showError('请输入用药剂量');
+      this.setData({ dosageNumberError: true });
+      return false;
+    }
+
+    if (!medicine.times || medicine.times.length === 0) {
+      this.showError('请设置用药时间');
+      return false;
+    }
+
+    // 校验times格式
+    const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    for (let time of medicine.times) {
+      if (!timePattern.test(time)) {
+        this.showError('用药时间格式错误，应为HH:MM');
+        return false;
+      }
+    }
+
+    return true;
+  },
+
+  /**
+   * 添加药品（集成云端同步）
+   */
   addMedicine: function() {
     var medicine = this.data.currentMedicine;
-    var that = this; // 保证回调函数里的 this 指向正确
 
-    // 1. 基础表单空值校验
-    if (!medicine.name) { this.showError('请输入药品名称'); return; }
-    if (!medicine.dosageNumber) { this.showError('请输入用药剂量'); return; }
-    if (!medicine.times || medicine.times.length === 0) { this.showError('请设置用药时间'); return; }
+    // 基础校验
+    if (!this.validateMedicine(medicine)) {
+      return;
+    }
 
     var medicineList = this.data.medicineList;
-    
-    // 2. 准备用于 CMeKG 禁忌分析的核心数据
-    // 提取当前列表中已有的全部药品名称
-    var currentMedicines = medicineList.map(function(item) { return item.name; });
-    
-    // ⭐ 从用户健康档案读取真实病史，替代硬编码
+
+    // 准备禁忌分析数据
+    var currentMedicines = medicineList.map(item => item.name);
     var healthProfile = wx.getStorageSync('healthProfile') || {};
     var userDiseases = (healthProfile.chronicDiseases || []).concat(
-      healthProfile.specialStatusName && healthProfile.specialStatusName !== '无特殊' ? [healthProfile.specialStatusName] : []
+      healthProfile.specialStatusName && healthProfile.specialStatusName !== '无特殊' 
+        ? [healthProfile.specialStatusName] 
+        : []
     );
-    // 同时把过敏史也加入检查范围
     var userAllergies = healthProfile.allergies || [];
 
-    wx.showLoading({ title: 'AI 知识图谱诊断中...', mask: true });
+    wx.showLoading({ title: '安全检测中...', mask: true });
 
-    // 3. 呼叫刚刚写好的云函数“最强大脑”
+    // 调用禁忌分析
     wx.cloud.callFunction({
       name: 'checkMedicineContraindication',
       data: {
@@ -367,46 +706,44 @@ Page({
         userDiseases: userDiseases,
         userAllergies: userAllergies
       },
-      success: function(res) {
+      success: (res) => {
         wx.hideLoading();
         var result = res.result;
 
-        // 4. 命运的判决：如果有警告，呼出极其震撼的本地高危弹窗
         if (result && result.hasWarning) {
+          // 有警告，显示高危弹窗
           var alertMsg = '';
-          result.warnings.forEach(function(w, index) {
-            alertMsg += (index + 1) + ". 【" + w.level + "】" + w.title + "：\n" + w.detail + "\n\n";
+          result.warnings.forEach((w, index) => {
+            alertMsg += (index + 1) + '. 【' + w.level + '】' + w.title + '：\n' + w.detail + '\n\n';
           });
 
-          // 呼叫微信原生的超强模态弹窗
           wx.showModal({
-            title: '🚨 用药安全高危预警',
+            title: '⚠️ 用药安全预警',
             content: alertMsg,
             confirmText: '执意添加',
-            confirmColor: '#ff4d4f', // 危险的红色按钮
-            cancelText: '取消用药',
-            success: function(modalRes) {
+            confirmColor: '#ff4d4f',
+            cancelText: '取消',
+            success: (modalRes) => {
               if (modalRes.confirm) {
-                // 如果患者头铁，依然允许写入本地（执行真正保存动作）
-                that.executeAddMedicine(medicine, medicineList);
+                this.executeAddMedicine(medicine, medicineList);
               }
             }
           });
         } else {
-          // 如果没有冲突，一路绿灯，直接调用原有的保存逻辑
-          that.executeAddMedicine(medicine, medicineList);
+          // 无冲突，直接添加
+          this.executeAddMedicine(medicine, medicineList);
         }
       },
-      fail: function(err) {
+      fail: (err) => {
         wx.hideLoading();
-        console.error('知识图谱连接失败', err);
-        // 为了防备比赛现场网络不好，如果云端断开，提供容错方案
+        console.error('安全检测失败', err);
+        // 网络失败时允许用户继续
         wx.showModal({
-          title: '校验服务离线',
-          content: '无法连接到云端知识图谱，是否直接强制添加？',
-          success: function(modalRes) {
+          title: '安全检测失败',
+          content: '无法连接到云端进行安全检测，是否继续添加？',
+          success: (modalRes) => {
             if (modalRes.confirm) {
-              that.executeAddMedicine(medicine, medicineList);
+              this.executeAddMedicine(medicine, medicineList);
             }
           }
         });
@@ -414,56 +751,155 @@ Page({
     });
   },
 
-  // 真正的保存写入操作被抽离到了这个安全屋里
+  /**
+   * 执行添加（集成SyncManager同步）
+   */
   executeAddMedicine: function(medicine, medicineList) {
-    var newId = medicineList.length > 0 ? Math.max.apply(Math, medicineList.map(function(item) { return item.id; })) + 1 : 1;
+    var newId = medicineList.length > 0 
+      ? Math.max.apply(Math, medicineList.map(item => item.id)) + 1 
+      : 1;
     var frequencyNum = parseInt(medicine.frequency) || 1;
-    var frequencyDisplay = frequencyNum + '次/日';
 
-    var medicineToSave = Object.assign({}, medicine, {
+    var medicineToSave = {
+      ...medicine,
       id: newId,
       frequency: frequencyNum.toString(),
-      frequencyDisplay: frequencyDisplay
-    });
+      frequencyDisplay: frequencyNum + '次/日',
+      createTime: Date.now()
+    };
 
     medicineList.push(medicineToSave);
 
+    // 保存到本地
     this.saveMedicineList(medicineList);
     this.hideMedicineModal();
 
-    wx.showToast({
-      title: '已入库',
-      icon: 'success'
+    wx.showToast({ title: '添加成功', icon: 'success' });
+
+    // ⭐ 后台同步到云端
+    const key = 'medicine_' + newId;
+    syncManager.write(key, medicineToSave).then(() => {
+      console.log('[manage] 新药品已同步到云端');
+    }).catch(err => {
+      console.warn('[manage] 云端同步失败（将重试）:', err);
     });
   },
 
-  // ================= 编辑与删除操作区 =================
-  
-  updateMedicine: function() {
-    /* ...原有逻辑... */
-    this.setData({ showEditConfirmModal: true, currentMedicineName: this.data.currentMedicine.name });
+  /**
+   * 保存药品列表（本地存储）
+   */
+  saveMedicineList: function(medicineList) {
+    wx.setStorageSync('medicineList', medicineList);
+    this.setData({
+      medicineList: medicineList,
+      groupedMedicine: this.groupByFrequency(medicineList)
+    });
   },
 
-  confirmUpdateMedicine: function() {
-    /* ...原有逻辑简化版... */
-    const medicine = this.data.currentMedicine;
-    const medicineList = this.data.medicineList;
-    const index = medicineList.findIndex(item => item.id === medicine.id);
-    if (index !== -1) {
-      medicineList[index] = medicine;
-      this.saveMedicineList(medicineList);
+  // ================= 删除药品 =================
+
+  showDeleteConfirm: function(e) {
+    const id = parseInt(e.currentTarget.dataset.id, 10);
+    const medicine = this.data.medicineList.find(m => m.id === id);
+    
+    if (medicine) {
+      this.setData({
+        showDeleteModal: true,
+        currentMedicine: medicine,
+        currentMedicineName: medicine.name
+      });
     }
-    this.hideEditConfirmModal();
-    this.hideMedicineModal();
-    wx.showToast({ title: '修改成功', icon: 'success' });
+  },
+
+  hideDeleteModal: function() {
+    this.setData({ showDeleteModal: false });
   },
 
   deleteMedicine: function() {
     const medicine = this.data.currentMedicine;
-    let medicineList = this.data.medicineList;
-    medicineList = medicineList.filter(item => item.id !== medicine.id);
+    let medicineList = this.data.medicineList.filter(item => item.id !== medicine.id);
+
     this.saveMedicineList(medicineList);
     this.hideDeleteModal();
+
+    // ⭐ 同步删除到云端
+    const key = 'medicine_' + medicine.id;
+    syncManager.delete(key).catch(err => {
+      console.warn('[manage] 云端删除失败:', err);
+    });
+
     wx.showToast({ title: '删除成功', icon: 'success' });
+  },
+
+  // ================= 表单操作 =================
+
+  hideMedicineModal: function() {
+    this.setData({ showMedicineModal: false });
+  },
+
+  hideEditConfirmModal: function() {
+    this.setData({ showEditConfirmModal: false });
+  },
+
+  hideErrorToast: function() {
+    this.setData({ showErrorToast: false });
+  },
+
+  showError: function(message) {
+    this.setData({ showErrorToast: true, errorMessage: message });
+    setTimeout(() => { this.setData({ showErrorToast: false }); }, 3000);
+  },
+
+  onNameInput: function(e) {
+    this.setData({ 'currentMedicine.name': e.detail.value });
+  },
+
+  onDosageNumberInput: function(e) {
+    this.setData({ 
+      'currentMedicine.dosageNumber': e.detail.value,
+      dosageNumberError: false
+    });
+  },
+
+  onDosageUnitInput: function(e) {
+    this.setData({ 'currentMedicine.dosageUnit': e.detail.value });
+  },
+
+  onInstructionChange: function(e) {
+    const index = e.detail.value;
+    this.setData({ 
+      instructionIndex: index, 
+      'currentMedicine.instruction': this.data.instructionOptions[index] 
+    });
+  },
+
+  onTimeChange: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    const times = [...this.data.currentMedicine.times];
+    times[index] = value;
+    this.setData({ 'currentMedicine.times': times });
+  },
+
+  addTimePicker: function() {
+    const times = [...this.data.currentMedicine.times, '08:00'];
+    this.setData({ 'currentMedicine.times': times });
+  },
+
+  removeTimePicker: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const times = this.data.currentMedicine.times.filter((_, i) => i !== index);
+    this.setData({ 'currentMedicine.times': times });
+  },
+
+  onFrequencyInput: function(e) {
+    this.setData({ 
+      'currentMedicine.frequency': e.detail.value,
+      frequencyError: false
+    });
+  },
+
+  onNotesInput: function(e) {
+    this.setData({ 'currentMedicine.notes': e.detail.value });
   }
 });

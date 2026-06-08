@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "triggers": [
+    {
+      "name": "reminderCheck",
+      "type": "timer",
+      "config": "*/15 * * * * * *"
+    }
+  ]
+}
