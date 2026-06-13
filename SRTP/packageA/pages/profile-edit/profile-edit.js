@@ -356,16 +356,17 @@ Page({
     
     wx.showLoading({ title: '保存中...' });
     
-    // 1. 准备健康档案数据
+    // 1. 准备健康档案数据（带本地时间戳，保证与云端 LWW 比较正确）
     const healthProfile = {
       allergies: this.data.allergies,
       chronicDiseases: this.data.chronicDiseases,
       surgeries: this.data.surgeries,
       specialStatusIndex: this.data.specialStatusIndex,
-      specialStatusName: this.data.specialStatusOptions[this.data.specialStatusIndex]
+      specialStatusName: this.data.specialStatusOptions[this.data.specialStatusIndex],
+      _localTimestamp: Date.now()
     };
     
-    // 2. 本地写入（即时响应）
+    // 2. 本地写入（即时响应）：UI 读取的规范键 healthProfile
     wx.setStorageSync('healthProfile', healthProfile);
     
     const userInfo = wx.getStorageSync('userInfo') || {};

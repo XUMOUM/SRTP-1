@@ -11,14 +11,16 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 模板ID配置（需在微信公众平台申请）
+// 模板ID配置（需在微信公众平台申请，通过云函数环境变量注入）
+// 在云开发控制台为本云函数配置：TEMPLATE_LONG_TERM / TEMPLATE_ONE_TIME / TEMPLATE_BACKUP
+// 其中 TEMPLATE_ONE_TIME 必须与小程序端 app.js globalData.notificationTemplateId 一致
 const TEMPLATES = {
   // 长期订阅模板（如有权限）
-  LONG_TERM: 'YOUR_LONG_TERM_TEMPLATE_ID',
+  LONG_TERM: process.env.TEMPLATE_LONG_TERM || '',
   // 一次性订阅模板
-  ONE_TIME: 'YOUR_ONE_TIME_TEMPLATE_ID',
+  ONE_TIME: process.env.TEMPLATE_ONE_TIME || 'gxUwJ3_t2rOHZR1bKjJesciFRSBbtCmjZKowY9qUOdw',
   // 备用模板（如果主模板审核中）
-  BACKUP: 'YOUR_BACKUP_TEMPLATE_ID'
+  BACKUP: process.env.TEMPLATE_BACKUP || ''
 };
 
 // 获取access_token（缓存2小时）

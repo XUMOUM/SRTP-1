@@ -6,8 +6,9 @@
 
 const SUBSCRIPTION_CONFIG = {
   // 模板ID（需在微信公众平台申请）
+  // 注意：此处必须与 app.js globalData.notificationTemplateId 保持一致（同一“用药提醒”一次性订阅模板）
   TEMPLATES: {
-    REMINDER: 'YOUR_ONE_TIME_TEMPLATE_ID', // 用药提醒模板
+    REMINDER: 'gxUwJ3_t2rOHZR1bKjJesciFRSBbtCmjZKowY9qUOdw', // 用药提醒模板（一次性订阅）
   },
   
   // 授权请求间隔（毫秒）- 避免频繁打扰
@@ -241,10 +242,15 @@ function requestSubscriptionAfterCheckin(medicineList, justCheckedMedicine) {
     return;
   }
   
-  // 格式化时间显示
+  // 格式化时间显示（基于下一个用药时间点与当前时刻的差值）
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  let minDiff = nextTime.minutes - currentMinutes;
+  if (minDiff < 0) minDiff += 24 * 60; // 跨天
   const hours = Math.floor(minDiff / 60);
   const minutes = minDiff % 60;
   const timeText = hours > 0 ? `${hours}小时${minutes}分钟后` : `${minutes}分钟后`;
+  console.log(`[subscriptionHelper] 下次用药约在${timeText}（${nextTime.medicine}）`);
   
   // 延迟请求（让用户先完成当前打卡的反馈）
   setTimeout(() => {

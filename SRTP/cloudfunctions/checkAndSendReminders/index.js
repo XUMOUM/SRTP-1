@@ -9,6 +9,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 时间窗口纯函数（已抽离，便于单元测试）
+const { buildCandidateTimes, isTimeWithinWindow } = require('./timeWindow.js');
+
 // 时间窗口配置（分钟）
 const TIME_WINDOW = 7;
 
@@ -24,17 +27,17 @@ exports.main = async (event, context) => {
 
     console.log(`[checkAndSendReminders] 当前时间: ${currentTimeStr}`);
 
-    // 2. 获取所有设置了用药提醒的用户
+    // 2. 生成时间窗口内的候选时刻（当前 ± TIME_WINDOW 分钟，跨小时/跨天安全）
+    const candidateTimes = buildCandidateTimes(currentHour, currentMinute, TIME_WINDOW);
+
+    // 用候选时刻集合查询（times 为数组字段，_.in 命中包含任一候选值的文档）
     const { data: medicines } = await db.collection('medicines')
       .where({
-        times: db.RegExp({
-          regexp: currentTimeStr.substring(0, 4), // 匹配前4位（小时+分钟前1位）
-          options: 'i'
-        })
+        times: _.in(candidateTimes)
       })
       .get();
 
-    console.log(`[checkAndSendReminders] 查询到 ${medicines.length} 条待提醒记录`);
+    console.log(`[checkAndSendReminders] 候选时刻: ${candidateTimes.join(',')}，查询到 ${medicines.length} 条待提醒记录`);
 
     // 3. 过滤精确匹配的提醒
     const remindersToSend = [];
@@ -152,34 +155,6 @@ exports.main = async (event, context) => {
     };
   }
 };
-
-/**
- * 检查时间是否在窗口内
- * @param {string} targetTime - "HH:MM" 格式
- * @param {number} currentHour
- * @param {number} currentMinute
- * @param {number} windowMinutes
- */
-function isTimeWithinWindow(targetTime, currentHour, currentMinute, windowMinutes) {
-  if (!targetTime || typeof targetTime !== 'string') return false;
-  
-  const parts = targetTime.split(':');
-  if (parts.length !== 2) return false;
-  
-  const targetHour = parseInt(parts[0], 10);
-  const targetMinute = parseInt(parts[1], 10);
-  
-  if (isNaN(targetHour) || isNaN(targetMinute)) return false;
-  
-  // 转换为分钟数
-  const targetTotal = targetHour * 60 + targetMinute;
-  const currentTotal = currentHour * 60 + currentMinute;
-  
-  // 计算时间差（绝对值）
-  const diff = Math.abs(targetTotal - currentTotal);
-  
-  return diff <= windowMinutes;
-}
 
 /**
  * 检查今天是否已经发送过

@@ -1,5 +1,7 @@
 // 引入SyncManager实现离线优先数据同步
 const syncManager = require('../../utils/syncManager.js');
+// OCR 前的图片预处理（灰度+对比度+缩放，失败自动降级）
+const { preprocessForOCR } = require('../../utils/imagePreprocess.js');
 
 Page({
   data: {
@@ -58,56 +60,13 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 1. 优先从本地加载（即时响应）
+      // 1. 优先从本地加载（即时响应）；无数据时保持空态，由 UI 引导用户添加
       let medicineList = wx.getStorageSync('medicineList') || [];
 
-      // 2. 如果没有本地数据，使用默认值
-      if (medicineList.length === 0) {
-        medicineList = [
-          {
-            id: 1,
-            name: '阿司匹林肠溶片',
-            dosageNumber: '1',
-            dosageUnit: '片',
-            instruction: '饭后服用',
-            times: ['08:00'],
-            frequency: '1',
-            frequencyDisplay: '1次/日',
-            notes: ''
-          },
-          {
-            id: 2,
-            name: '降压药',
-            dosageNumber: '1',
-            dosageUnit: '粒',
-            instruction: '饭前服用',
-            times: ['07:30'],
-            frequency: '1',
-            frequencyDisplay: '1次/日',
-            notes: '血压稳定时服用'
-          },
-          {
-            id: 3,
-            name: '维生素C',
-            dosageNumber: '2',
-            dosageUnit: '粒',
-            instruction: '随餐服用',
-            times: ['12:00'],
-            frequency: '1',
-            frequencyDisplay: '1次/日',
-            notes: ''
-          }
-        ];
-        wx.setStorageSync('medicineList', medicineList);
-        
-        // 首次初始化后同步到云端
-        this.syncAllMedicinesToCloud(medicineList);
-      }
-
-      // 3. 更新UI
+      // 2. 更新UI
       this.updateMedicineList(medicineList);
 
-      // 4. 后台同步云端数据
+      // 3. 后台同步云端数据（首次进入若本地为空，会从云端合并已有药品）
       this.syncFromCloud();
 
     } catch (e) {
@@ -179,7 +138,7 @@ Page({
   },
 
   /**
-   * 从云端同步数据
+   * 从云端同步数据（双向合并，Last-Write-Wins）
    */
   syncFromCloud: async function() {
     try {
@@ -193,17 +152,65 @@ Page({
       });
 
       if (res.result.success && res.result.data && res.result.data.length > 0) {
-        // 合并云端数据到本地
         const cloudData = res.result.data;
         console.log('[manage] 从云端加载到', cloudData.length, '条数据');
-        
-        // 这里可以实现更复杂的合并逻辑
-        this.setData({ syncStatus: 'synced' });
+
+        // 将云端数据合并回本地 medicineList（云端较新则覆盖，云端独有则新增）
+        const merged = this.mergeCloudMedicines(this.data.medicineList, cloudData);
+        if (merged.changed) {
+          this.saveMedicineList(merged.list);
+          console.log('[manage] 已合并云端更新到本地');
+        }
       }
+
+      this.setData({ syncStatus: 'synced' });
     } catch (e) {
       console.warn('[manage] 云端同步失败:', e);
       this.setData({ syncStatus: 'error' });
     }
+  },
+
+  /**
+   * 合并云端药品数据到本地列表
+   * 冲突解决：Last-Write-Wins（按最后修改时间）
+   * @returns {{ list: Array, changed: boolean }}
+   */
+  mergeCloudMedicines: function(localList, cloudDocs) {
+    const stripMeta = (doc) => {
+      const clean = {};
+      Object.keys(doc).forEach(k => {
+        // 移除云端/同步元数据字段（以 _ 开头，如 _id/_openid/_key/_cloudTimestamp）
+        if (!k.startsWith('_')) clean[k] = doc[k];
+      });
+      return clean;
+    };
+    const modifiedTime = (item) => item.updateTime || item.createTime || 0;
+    const cloudModifiedTime = (doc) => doc.updateTime || doc.createTime || doc._cloudTimestamp || 0;
+
+    const byId = {};
+    (localList || []).forEach(item => {
+      if (item && item.id != null) byId[item.id] = item;
+    });
+
+    let changed = false;
+
+    cloudDocs.forEach(doc => {
+      const cloudMed = stripMeta(doc);
+      if (cloudMed.id == null) return; // 没有业务 id 的脏数据，跳过
+
+      const localMed = byId[cloudMed.id];
+      if (!localMed) {
+        // 云端独有，新增到本地
+        byId[cloudMed.id] = cloudMed;
+        changed = true;
+      } else if (cloudModifiedTime(doc) > modifiedTime(localMed)) {
+        // 云端更新，覆盖本地
+        byId[cloudMed.id] = { ...localMed, ...cloudMed };
+        changed = true;
+      }
+    });
+
+    return { list: Object.keys(byId).map(k => byId[k]), changed };
   },
 
   /**
@@ -320,12 +327,15 @@ Page({
   chooseImage: function(sourceType) {
     wx.chooseImage({
       count: 1,
-      sizeType: ['compressed'],
+      sizeType: ['original', 'compressed'],
       sourceType: sourceType,
       success: (res) => {
         const tempFilePath = res.tempFilePaths[0];
         wx.showLoading({ title: '识别中...', mask: true });
-        this.recognizePrescription(tempFilePath);
+        // 先做图片预处理（增强对比度），再识别；预处理失败会自动返回原图
+        preprocessForOCR(tempFilePath)
+          .then((processedPath) => this.recognizePrescription(processedPath))
+          .catch(() => this.recognizePrescription(tempFilePath));
       }
     });
   },

@@ -1,0 +1,13 @@
+{
+  "name": "srtp-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SRTP 工具脚本（含 CMeKG 图谱 ETL）",
+  "scripts": {
+    "cmekg:probe": "node cmekgEtl.js --probe",
+    "cmekg:etl": "node cmekgEtl.js"
+  },
+  "dependencies": {
+    "neo4j-driver": "^5.28.1"
+  }
+}

@@ -1,0 +1,24 @@
+# 依赖
+node_modules/
+**/node_modules/
+
+# 微信开发者工具私有/本地配置
+project.private.config.json
+**/project.private.config.json
+
+# 密钥与环境变量（切勿提交）
+.env
+.env.*
+**/*.key
+**/secrets.json
+
+# 大体积二进制数据（如 CMeKG 图库 dump，体积大且不适合版本库）
+*.dump
+
+# ETL 生成产物（由 cmekgEtl.js 生成，按需导入云库后无需入库）
+SRTP/scripts/cmekg_seed_data.generated.json
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db

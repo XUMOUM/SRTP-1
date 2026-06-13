@@ -6,7 +6,7 @@
     {
       "name": "reminderCheck",
       "type": "timer",
-      "config": "*/15 * * * * * *"
+      "config": "0 */15 * * * * *"
     }
   ]
 }

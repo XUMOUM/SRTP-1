@@ -56,6 +56,7 @@ App({
     audioContext: null,
     vibrationInterval: null,
     currentReminder: null,
+    reminderSafetyTimer: null,
     notificationTemplateId: 'gxUwJ3_t2rOHZR1bKjJesciFRSBbtCmjZKowY9qUOdw'
   },
   
@@ -148,7 +149,7 @@ navigateToLockScreen() {
   // 延迟一点跳转，避免页面栈冲突
   setTimeout(() => {
     wx.navigateTo({
-      url: '/pages/lock/lock',
+      url: '/packageA/pages/lock/lock',
       success: () => {
         console.log('✅ 跳转锁屏成功');
       },
@@ -232,6 +233,17 @@ navigateToLockScreen() {
     }
     
     this.globalData.currentReminder = medicine;
+
+    // 安全兜底：5分钟后若仍未处理，自动释放提醒锁，避免阻塞后续提醒
+    if (this.globalData.reminderSafetyTimer) {
+      clearTimeout(this.globalData.reminderSafetyTimer);
+    }
+    this.globalData.reminderSafetyTimer = setTimeout(() => {
+      if (this.globalData.currentReminder) {
+        console.warn('[reminder] 提醒超时未处理，自动释放提醒锁');
+        this.stopReminder();
+      }
+    }, 5 * 60 * 1000);
     
     // 获取当前页面栈
     const pages = getCurrentPages();
@@ -368,6 +380,11 @@ navigateToLockScreen() {
       clearInterval(this.globalData.vibrationInterval);
       this.globalData.vibrationInterval = null;
     }
+
+    if (this.globalData.reminderSafetyTimer) {
+      clearTimeout(this.globalData.reminderSafetyTimer);
+      this.globalData.reminderSafetyTimer = null;
+    }
     
     this.globalData.currentReminder = null;
   },
@@ -404,17 +421,8 @@ navigateToLockScreen() {
     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
                         now.getMinutes().toString().padStart(2, '0');
     
-    // 标记当前时间段的用药
-    if (medicine.timeSlots) {
-      // 新版数据结构
-      medicine.timeSlots.forEach(slot => {
-        if (slot.time === currentTime) {
-          const slotId = medicine.id + '_' + slot.time;
-          completedList[slotId] = { completed: true, markedTime: currentTime };
-        }
-      });
-    } else if (medicine.times) {
-      // 旧版数据结构
+    // 标记当前时间段的用药（统一使用 times 数据结构，slotId 与首页保持一致）
+    if (medicine.times && Array.isArray(medicine.times)) {
       medicine.times.forEach(time => {
         if (time === currentTime) {
           const slotId = medicine.id + '_' + time;
@@ -443,12 +451,12 @@ navigateToLockScreen() {
            now.getMinutes().toString().padStart(2, '0');
   },
   
-  // 生成今日键
+  // 生成今日存储键（与首页 index 保持一致：completed_YYYY-MM-DD）
   getTodayKey() {
     const now = new Date();
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
-    return 'completed_' + year + month + day;
+    return 'completed_' + year + '-' + month + '-' + day;
   }
 });

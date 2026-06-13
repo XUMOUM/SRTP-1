@@ -118,6 +118,8 @@ if (cloudTimestamp > localTimestamp) {
 
 ### 3. LLM解析质量控制
 
+> OCR 技术说明：立项书曾计划使用 PaddleOCR/EasyOCR，实际实现采用**微信 serviceMarket 的 OcrAllInOne 通用印刷体识别**（见 `pages/manage/manage.js` 的 `recognizePrescription`），识别前先经 `utils/imagePreprocess.js` 做灰度+对比度增强；识别文本再交由 LLM 结构化解析。
+
 **问题**：OCR后的文本传给LLM，可能出现"片"识别成"斤"的幻觉
 
 **解决方案三层防护**：
@@ -178,9 +180,22 @@ dosageUnit: {
 - [x] 部署运维手册
 - [x] 测试用例文档（OCR准确率/提醒准时率/禁忌分析）
 
-### 待完成项
-- [ ] OCR图片预处理（旋转校正、锐化、去噪）- 可选增强
-- [ ] 家人监督功能完善（好友关系链、数据授权）- 需进一步需求确认
+### 工程化与测试（已完成）
+- [x] 纯函数单元测试（Schema 校验 / 禁忌匹配 / 提醒时间窗口，零依赖运行器，21 用例全通过）
+- [x] `.gitignore`（忽略密钥、私有配置与大体积 `*.dump`）
+- [x] 密钥与模板 ID 改为云函数环境变量注入
+
+### OCR 图片预处理（已完成）
+- [x] OCR 前灰度化 + 对比度增强 + 等比缩放（`utils/imagePreprocess.js`，失败自动降级原图）
+- [ ] 旋转校正 / 去噪等进阶增强 - 可选后续优化
+
+### 家人监督（已完成基础闭环）
+- [x] 好友搜索 / 请求 / 同意（云函数 searchUser、sendFriendRequest、handleFriendRequest）
+- [x] 在 accepted 好友授权下查看其当日用药完成情况（新增云函数 `getFriendMedicationStatus`）
+
+### CMeKG 全量图谱集成（路线 A，工具就绪）
+- [x] ETL 脚本与文档：`scripts/cmekgEtl.js` + `scripts/cmekg-integration.md`
+- [ ] 由用户在本地用 Neo4j 5.x 恢复 `cmekg-v5.2-no-constraints.dump` 后运行 ETL 并导入云库
 
 ---
 
@@ -216,16 +231,21 @@ node initDatabase.js
 # 3. 按序部署所有云函数（详见 docs/deployment.md）
 ```
 
-3. **配置API Key和模板ID**
-```javascript
-// cloudfunctions/parseMedicineByAI/index.js
-const API_KEY = 'YOUR_SILICONFLOW_API_KEY';
+3. **配置 API Key 和模板 ID（通过云函数环境变量，切勿硬编码）**
 
-// cloudfunctions/sendReminderMessage/index.js
-const TEMPLATES = {
-  ONE_TIME: 'YOUR_SUBSCRIPTION_TEMPLATE_ID'
-};
+在微信云开发控制台 -> 对应云函数 -> 配置 -> 环境变量中设置：
+
+```text
+# parseMedicineByAI
+SILICONFLOW_API_KEY = 你的硅基流动密钥
+# 可选：SILICONFLOW_BASE_URL / SILICONFLOW_MODEL
+
+# sendReminderMessage
+TEMPLATE_ONE_TIME  = 一次性订阅模板ID（须与小程序端 app.js notificationTemplateId 一致）
+# 可选：TEMPLATE_LONG_TERM / TEMPLATE_BACKUP
 ```
+
+> 安全说明：旧版本曾在代码中硬编码密钥，现已改为环境变量注入。若历史密钥曾提交到仓库，请在硅基流动控制台**吊销并重置**。`.gitignore` 已忽略 `.env`、`*.key`、`*.dump` 等敏感/大文件。
 
 4. **导入CMeKG数据**
 ```bash

@@ -11,54 +11,16 @@
 const cloud = require('wx-server-sdk');
 cloud.init();
 
-// 硅基流动配置
-const API_KEY = 'sk-aqilbtdyydahygfxdfazurtqvhsurktmcohhzjcjrldrstmg';
-const BASE_URL = 'https://api.siliconflow.cn/v1/chat/completions';
-const MODEL_NAME = 'Qwen/Qwen2.5-7B-Instruct';
+// 硅基流动配置（密钥通过云函数环境变量注入，切勿硬编码提交）
+// 在微信云开发控制台 -> 云函数 -> parseMedicineByAI -> 配置 -> 环境变量 中设置 SILICONFLOW_API_KEY
+const API_KEY = process.env.SILICONFLOW_API_KEY || '';
+const BASE_URL = process.env.SILICONFLOW_BASE_URL || 'https://api.siliconflow.cn/v1/chat/completions';
+const MODEL_NAME = process.env.SILICONFLOW_MODEL || 'Qwen/Qwen2.5-7B-Instruct';
 
 const { httpclient } = cloud;
 
-// Schema校验规则
-const MEDICINE_SCHEMA = {
-  name: {
-    type: 'string',
-    required: true,
-    minLength: 1,
-    maxLength: 100,
-    pattern: /^[\u4e00-\u9fa5a-zA-Z0-9\(\)（）\-\s]+$/  // 中文字符、英文、数字、括号
-  },
-  dosageNumber: {
-    type: 'string',
-    required: true,
-    pattern: /^[0-9.]+$/  // 纯数字或小数
-  },
-  dosageUnit: {
-    type: 'string',
-    required: true,
-    enum: ['片', '粒', 'mg', 'g', 'ml', '包', '支', '瓶', '盒', '粒', '丸', '袋', '滴', '喷', '枚', '贴', '粒'],  // ⭐ 白名单，拒绝"斤"
-    forbidden: ['斤', '公斤', '千克', '斤', '两', '钱']  // 明确禁止的单位
-  },
-  instruction: {
-    type: 'string',
-    maxLength: 50,
-    enum: ['饭前服用', '饭后服用', '随餐服用', '空腹服用', '睡前服用', '晨起服用', '必要时服用', '无特殊要求', '']
-  },
-  frequency: {
-    type: 'string',
-    required: true,
-    pattern: /^[0-9]+$/  // 纯数字
-  },
-  times: {
-    type: 'array',
-    items: {
-      pattern: /^([01]\d|2[0-3]):([0-5]\d)$/  // HH:MM 24小时格式
-    }
-  },
-  notes: {
-    type: 'string',
-    maxLength: 200
-  }
-};
+// Schema 校验与后处理纯函数（已抽离，便于单元测试）
+const { validateMedicine, postProcess } = require('./validator.js');
 
 /**
  * 构建Few-Shot提示词（2个示例）
@@ -106,112 +68,6 @@ ${ocrText}
 请直接返回JSON格式，不要有任何解释文字。`;
 }
 
-/**
- * Schema校验
- * @returns {Object} { valid: boolean, data: Object, errors: Array }
- */
-function validateMedicine(medicine, index) {
-  const errors = [];
-  const validated = {};
-
-  // 遍历schema规则
-  for (const [field, rules] of Object.entries(MEDICINE_SCHEMA)) {
-    const value = medicine[field];
-
-    // 必填检查
-    if (rules.required && (!value || value === '')) {
-      errors.push(`药品[${index + 1}].${field}: 必填项缺失`);
-      continue;
-    }
-
-    // 跳过空值的其他校验
-    if (!value && !rules.required) {
-      validated[field] = value;
-      continue;
-    }
-
-    // 类型检查
-    if (rules.type === 'string' && typeof value !== 'string') {
-      errors.push(`药品[${index + 1}].${field}: 类型错误，期望string，实际${typeof value}`);
-      continue;
-    }
-
-    // 枚举检查（白名单）⭐ 关键：拦截"斤"等异常单位
-    if (rules.enum && !rules.enum.includes(value)) {
-      // 检查是否在禁用列表
-      if (rules.forbidden && rules.forbidden.includes(value)) {
-        errors.push(`药品[${index + 1}].${field}: "${value}" 是非法单位（可能是识别错误）`);
-      } else {
-        errors.push(`药品[${index + 1}].${field}: "${value}" 不在允许值列表中，允许: ${rules.enum.join(', ')}`);
-      }
-      continue;
-    }
-
-    // 正则检查
-    if (rules.pattern && !rules.pattern.test(value)) {
-      errors.push(`药品[${index + 1}].${field}: "${value}" 格式不符合要求`);
-      continue;
-    }
-
-    // 数组项校验
-    if (rules.type === 'array' && Array.isArray(value)) {
-      if (rules.items) {
-        for (let i = 0; i < value.length; i++) {
-          if (rules.items.pattern && !rules.items.pattern.test(value[i])) {
-            errors.push(`药品[${index + 1}].${field}[${i}]: "${value[i]}" 格式错误`);
-          }
-        }
-      }
-    }
-
-    validated[field] = value;
-  }
-
-  return {
-    valid: errors.length === 0,
-    data: validated,
-    errors: errors
-  };
-}
-
-/**
- * 智能时间推断
- * 如果AI没有提供times，根据frequency推断默认时间
- */
-function inferTimes(frequency) {
-  const freq = parseInt(frequency, 10) || 1;
-  const defaultTimes = {
-    1: ['08:00'],
-    2: ['08:00', '20:00'],
-    3: ['08:00', '14:00', '20:00'],
-    4: ['08:00', '12:00', '18:00', '22:00']
-  };
-  
-  return defaultTimes[freq] || ['08:00'];
-}
-
-/**
- * 后处理：补全缺失字段
- */
-function postProcess(medicine) {
-  // 如果时间缺失，自动推断
-  if (!medicine.times || medicine.times.length === 0) {
-    medicine.times = inferTimes(medicine.frequency);
-  }
-
-  // 标准化药品名称（去除多余空格）
-  if (medicine.name) {
-    medicine.name = medicine.name.replace(/\s+/g, ' ').trim();
-  }
-
-  // 标准化用量（去除单位中可能的重复）
-  if (medicine.dosageNumber) {
-    medicine.dosageNumber = medicine.dosageNumber.replace(/[^0-9.]/g, '');
-  }
-
-  return medicine;
-}
-
 exports.main = async (event, context) => {
   const { ocrText, imageUrl } = event;
   
@@ -233,6 +89,18 @@ exports.main = async (event, context) => {
       error: 'OCR文本过长，请重新拍摄或使用手动输入',
       errorType: 'TEXT_TOO_LONG',
       fallback: true
+    };
+  }
+
+  // 密钥缺失检查（避免在未配置环境变量时发起无效请求）
+  if (!API_KEY) {
+    console.error('[parseMedicineByAI] 未配置 SILICONFLOW_API_KEY 环境变量');
+    return {
+      success: false,
+      error: 'AI解析服务未配置，请联系管理员或使用手动输入',
+      errorType: 'CONFIG_ERROR',
+      fallback: true,
+      rawText: ocrText
     };
   }
 
