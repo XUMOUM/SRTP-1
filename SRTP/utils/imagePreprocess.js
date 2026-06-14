@@ -100,5 +100,6 @@ function preprocessForOCR(filePath) {
 }
 
 module.exports = {
-  preprocessForOCR
+  preprocessForOCR,
+  fitSize
 };

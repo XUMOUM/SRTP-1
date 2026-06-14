@@ -53,3 +53,26 @@ test('子串模糊匹配（严重胃溃疡 命中 胃溃疡）', () => {
 test('空 kgData 安全返回空数组', () => {
   assert.deepStrictEqual(analyzeContraindications(null, { userDiseases: ['胃溃疡'] }), []);
 });
+
+test('病史与过敏史同时命中，产生两条预警', () => {
+  const w = analyzeContraindications(aspirin, { userDiseases: ['胃溃疡'], userAllergies: ['阿司匹林'] });
+  assert.ok(w.some(x => x.type === 'disease'));
+  assert.ok(w.some(x => x.type === 'allergy'));
+  assert.strictEqual(w.length, 2);
+});
+
+test('多个相互作用同时命中均产生预警', () => {
+  const w = analyzeContraindications(aspirin, { currentMedicines: ['华法林', '布洛芬'] });
+  const interactions = w.filter(x => x.type === 'interaction');
+  assert.strictEqual(interactions.length, 2);
+});
+
+test('profile 为 null 时安全返回空数组', () => {
+  assert.deepStrictEqual(analyzeContraindications(aspirin, null), []);
+});
+
+test('kgData 无 contraindications 字段时不抛出异常', () => {
+  const noContraData = { name: '维生素C', interactions: [] };
+  const w = analyzeContraindications(noContraData, { userDiseases: ['胃溃疡'] });
+  assert.deepStrictEqual(w, []);
+});

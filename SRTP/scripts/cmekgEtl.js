@@ -36,39 +36,25 @@ try {
   process.exit(1);
 }
 
-// ============ 可配置区（用 --probe 探查后按真实 schema 校准） ============
+// ============ 可配置区（CMeKG v5.2 no-constraints dump 实测 schema） ============
 const CONFIG = {
-  // 药品节点标签（CMeKG 中文标签，常见为 "药物" 或 "药品"）
-  drugLabel: process.env.CMEKG_DRUG_LABEL || '药物',
-  疾病Label: process.env.CMEKG_DISEASE_LABEL || '疾病',
-  // 节点上药品名称所在属性
+  // v5.2 使用英文标签 Drug / Disease / Complication / Symptom
+  drugLabel: process.env.CMEKG_DRUG_LABEL || 'Drug',
   nameProp: process.env.CMEKG_NAME_PROP || 'name',
-  aliasProp: process.env.CMEKG_ALIAS_PROP || 'aliases',
-  categoryProp: process.env.CMEKG_CATEGORY_PROP || 'category',
 
-  // 关系类型（药品 -> 目标）。以下为占位/常见命名，请按 --probe 结果修改。
+  // v5.2 仅有 contraindications 关系指向 Disease/Complication/Symptom，无 Drug-Drug 相互作用边
   rels: {
-    // 药品 -> 禁忌疾病
-    contraindicationDisease: process.env.CMEKG_REL_CONTRA || '禁忌症',
-    // 药品 -> 过敏原 / 过敏禁忌
-    allergy: process.env.CMEKG_REL_ALLERGY || '过敏',
-    // 药品 -> 药品（相互作用）
-    interaction: process.env.CMEKG_REL_INTERACTION || '药物相互作用',
-    // 药品 -> 禁忌人群
-    population: process.env.CMEKG_REL_POPULATION || '禁忌人群'
-  },
-
-  // 相互作用关系上的属性名
-  interactionProps: {
-    riskLevel: process.env.CMEKG_IX_RISK || 'risk_level',
-    mechanism: process.env.CMEKG_IX_MECHANISM || 'mechanism',
-    advice: process.env.CMEKG_IX_ADVICE || 'advice'
+    contraindications: process.env.CMEKG_REL_CONTRA || 'contraindications',
+    subject: process.env.CMEKG_REL_SUBJECT || 'subject',
+    precautions: process.env.CMEKG_REL_PRECAUTIONS || 'precautions'
   },
 
   // 抽取上限（0 表示不限制，调试时可设小值）
   limit: parseInt(process.env.CMEKG_LIMIT || '0', 10),
 
-  outputFile: path.join(__dirname, 'cmekg_seed_data.generated.json')
+  outputFile: path.join(__dirname, 'cmekg_seed_data.generated.json'),
+  importFile: path.join(__dirname, 'cmekg_import_ready.json'),
+  importJsonlFile: path.join(__dirname, 'cmekg_import_ready.jsonl')
 };
 
 function getDriver() {
@@ -113,37 +99,54 @@ function toArray(val) {
   return [val].filter(Boolean);
 }
 
-function normalizeRisk(val) {
-  if (!val) return '中';
-  const s = String(val);
-  if (/高|严重|major|high/i.test(s)) return '高';
-  if (/低|轻|minor|low/i.test(s)) return '低';
-  return '中';
+function uniqueStrings(items) {
+  return [...new Set(items.map(s => String(s).trim()).filter(Boolean))];
+}
+
+function extractAllergiesFromPrecautions(precautions) {
+  const allergies = [];
+  for (const text of toArray(precautions)) {
+    const m = String(text).match(/对(.{1,30}?)过敏者禁用/);
+    if (m && m[1]) allergies.push(m[1].trim());
+    if (/青霉素/.test(text)) allergies.push('青霉素');
+    if (/头孢/.test(text)) allergies.push('头孢类');
+  }
+  return allergies;
+}
+
+function extractPopulationsFromPrecautions(precautions) {
+  const populations = [];
+  for (const text of toArray(precautions)) {
+    if (/孕妇/.test(text)) populations.push('孕妇');
+    if (/哺乳期/.test(text)) populations.push('哺乳期妇女');
+    if (/儿童/.test(text)) populations.push('儿童');
+    if (/老年/.test(text)) populations.push('老年人');
+  }
+  return uniqueStrings(populations);
 }
 
 async function runExtract(session) {
   const limitClause = CONFIG.limit > 0 ? `LIMIT ${CONFIG.limit}` : '';
 
-  // 一次性按药品聚合其各类关系。OPTIONAL MATCH 保证无关系的药品也能导出。
   const cypher = `
     MATCH (d:\`${CONFIG.drugLabel}\`)
-    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.contraindicationDisease}\`]->(dis)
-    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.allergy}\`]->(al)
-    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.population}\`]->(pop)
-    OPTIONAL MATCH (d)-[ix:\`${CONFIG.rels.interaction}\`]->(t:\`${CONFIG.drugLabel}\`)
+    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.contraindications}\`]->(dis:Disease)
+    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.contraindications}\`]->(comp:Complication)
+    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.contraindications}\`]->(sym:Symptom)
+    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.subject}\`]->(sub:Subject)
+    OPTIONAL MATCH (d)-[:\`${CONFIG.rels.precautions}\`]->(pre:Precautions)
+    WITH d, sub,
+         collect(DISTINCT dis.\`${CONFIG.nameProp}\`) AS diseaseNames,
+         collect(DISTINCT comp.\`${CONFIG.nameProp}\`) AS complicationNames,
+         collect(DISTINCT sym.\`${CONFIG.nameProp}\`) AS symptomNames,
+         collect(DISTINCT pre.\`${CONFIG.nameProp}\`) AS precautionTexts
     RETURN
-      d.\`${CONFIG.nameProp}\`      AS name,
-      d.\`${CONFIG.aliasProp}\`     AS aliases,
-      d.\`${CONFIG.categoryProp}\`  AS category,
-      collect(DISTINCT dis.\`${CONFIG.nameProp}\`) AS diseases,
-      collect(DISTINCT al.\`${CONFIG.nameProp}\`)  AS allergies,
-      collect(DISTINCT pop.\`${CONFIG.nameProp}\`) AS populations,
-      collect(DISTINCT {
-        target: t.\`${CONFIG.nameProp}\`,
-        risk:   ix.\`${CONFIG.interactionProps.riskLevel}\`,
-        mech:   ix.\`${CONFIG.interactionProps.mechanism}\`,
-        advice: ix.\`${CONFIG.interactionProps.advice}\`
-      }) AS interactions
+      d.\`${CONFIG.nameProp}\` AS name,
+      sub.\`${CONFIG.nameProp}\` AS category,
+      diseaseNames,
+      complicationNames,
+      symptomNames,
+      precautionTexts
     ${limitClause}
   `;
 
@@ -154,25 +157,40 @@ async function runExtract(session) {
     const name = rec.get('name');
     if (!name) continue;
 
-    const interactions = toArray(rec.get('interactions'))
-      .filter(i => i && i.target)
-      .map(i => ({
-        target_drug: i.target,
-        risk_level: normalizeRisk(i.risk),
-        mechanism: i.mech || '存在相互作用，请遵医嘱',
-        advice: i.advice || '如需合用请咨询医生或药师'
-      }));
+    const diseaseNames = toArray(rec.get('diseaseNames'));
+    const complicationNames = toArray(rec.get('complicationNames'));
+    const symptomNames = toArray(rec.get('symptomNames'));
+    const precautionTexts = toArray(rec.get('precautionTexts'));
+
+    const allergyFromComplications = complicationNames.filter(n => /过敏/.test(n));
+    const diseaseComplications = complicationNames.filter(n => !/过敏/.test(n));
+
+    const diseases = uniqueStrings([
+      ...diseaseNames,
+      ...diseaseComplications,
+      ...symptomNames
+    ]);
+    const allergies = uniqueStrings([
+      ...allergyFromComplications,
+      ...extractAllergiesFromPrecautions(precautionTexts)
+    ]);
+    const populations = extractPopulationsFromPrecautions(precautionTexts);
+
+    // 仅导出至少含禁忌/过敏/人群信息的药品，减少云库无效记录
+    if (diseases.length === 0 && allergies.length === 0 && populations.length === 0) {
+      continue;
+    }
 
     medicines.push({
       name: name,
-      aliases: toArray(rec.get('aliases')),
+      aliases: [],
       category: rec.get('category') || '',
       contraindications: {
-        diseases: toArray(rec.get('diseases')),
-        allergies: toArray(rec.get('allergies')),
-        populations: toArray(rec.get('populations'))
+        diseases: diseases,
+        allergies: allergies,
+        populations: populations
       },
-      interactions: interactions
+      interactions: []
     });
   }
 
@@ -180,12 +198,22 @@ async function runExtract(session) {
     _comment: 'CMeKG v5.2 全量图谱 ETL 生成（由 cmekgEtl.js 抽取）',
     _generatedAt: new Date().toISOString(),
     _count: medicines.length,
+    _source: 'cmekg-v5.2-no-constraints.dump',
     medicines: medicines,
-    import_instructions: '导入云数据库集合 cme_kg_medicines 前，请删除 _comment/_generatedAt/_count/import_instructions 字段，并为 name 建唯一索引、aliases 建普通索引'
+    import_instructions: '云开发导入请使用 cmekg_import_ready.json（medicines 包装）或 cmekg_import_ready.jsonl（JSON Lines）'
   };
 
+  // 微信云开发导入：不接受裸数组，需 medicines 包装对象或 JSON Lines
+  const importPayload = { medicines: medicines };
+  const jsonl = medicines.map(item => JSON.stringify(item)).join('\n');
+
   fs.writeFileSync(CONFIG.outputFile, JSON.stringify(output, null, 2), 'utf8');
-  console.log(`已抽取 ${medicines.length} 种药品，输出到: ${CONFIG.outputFile}`);
+  fs.writeFileSync(CONFIG.importFile, JSON.stringify(importPayload, null, 2), 'utf8');
+  fs.writeFileSync(CONFIG.importJsonlFile, jsonl, 'utf8');
+  console.log(`已抽取 ${medicines.length} 种药品（含禁忌/过敏/人群信息）`);
+  console.log(`完整输出: ${CONFIG.outputFile}`);
+  console.log(`云库导入(JSON): ${CONFIG.importFile}`);
+  console.log(`云库导入(JSONL): ${CONFIG.importJsonlFile}`);
 }
 
 async function main() {

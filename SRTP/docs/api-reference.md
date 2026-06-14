@@ -54,7 +54,7 @@ wx.cloud.callFunction({
 
 ### 1.2 sendReminderMessage - 发送用药提醒
 
-**功能**：三层降级策略发送提醒消息
+**功能**：订阅消息降级策略发送提醒消息（一次性订阅 → 前台兜底）
 
 #### 请求参数
 
@@ -63,14 +63,14 @@ wx.cloud.callFunction({
 | `openid` | String | 是 | 用户OpenID |
 | `medicine` | Object | 是 | 药品信息 `{name, dosageNumber, dosageUnit}` |
 | `time` | String | 是 | 提醒时间 "HH:MM" |
-| `strategy` | String | 否 | 策略：auto(默认)/long_term_only/one_time_only |
+| `strategy` | String | 否 | 策略：auto(默认)/one_time_only |
 
 #### 响应格式
 
 ```javascript
 {
   success: true,
-  strategy: 'long_term',     // 实际使用的策略
+  strategy: 'one_time',      // 实际使用的策略
   results: {
     attempts: [...],         // 各层尝试结果
     final: Object            // 最终结果
@@ -465,7 +465,7 @@ wx.serviceMarket.invokeService({
   medicineName: String,
   scheduledTime: String,
   sentTime: Date,
-  type: String,              // long_term / one_time / foreground
+  type: String,              // one_time / foreground
   sent: Boolean,             // 是否成功发送
   error: String              // 失败原因（如有）
 }

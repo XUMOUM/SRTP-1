@@ -1,6 +1,6 @@
 # CMeKG v5.2 全量图谱集成指南（路线 A：离线 ETL）
 
-本指南说明如何把仓库新增的 `cmekg-v5.2-no-constraints/cmekg-v5.2-no-constraints.dump`
+本指南说明如何把 `resources/cmekg-v5.2-no-constraints.dump`
 （Neo4j 图数据库 dump）转换为云数据库集合 `cme_kg_medicines` 的文档数据，
 从而扩充禁忌分析覆盖率（目标 ≥90%），而**无需改动** `checkMedicineContraindication` 云函数主体逻辑。
 
@@ -30,7 +30,18 @@ neo4j start
 
 ## 2. 探查图谱 schema
 
-CMeKG 各版本的节点标签 / 关系类型 / 属性命名可能不同，必须先探查：
+CMeKG v5.2（no-constraints dump）实测标签/关系为**英文**：
+
+| 项目 | v5.2 实测值 |
+|------|------------|
+| 药品节点 | `Drug`（属性仅 `name`） |
+| 禁忌关系 | `contraindications` → `Disease` / `Complication` / `Symptom` |
+| 分类 | `subject` → `Subject` |
+| 注意事项 | `precautions` → `Precautions`（可解析过敏/人群） |
+| 药物相互作用 | **图谱中无 Drug-Drug 边** |
+
+`cmekgEtl.js` 已按上述 schema 校准；抽取时仅导出含禁忌/过敏/人群信息的药品（约 5000+ 条），
+并可将原 `cmekg_seed_data.json` 中的 `interactions` 合并进同名药品。
 
 ```bash
 cd SRTP/scripts
@@ -69,9 +80,13 @@ node cmekgEtl.js
 
 ## 4. 导入云数据库
 
-1. 删除生成 JSON 中的 `_comment`/`_generatedAt`/`_count`/`import_instructions` 元字段，只保留 `medicines` 数组（或逐条导入）。
-2. 在微信云开发控制台打开集合 `cme_kg_medicines`，导入数据。
-3. 为 `name` 建唯一索引、`aliases` 建普通索引（参考 `scripts/initDatabase.js`）。
+微信云开发**不接受裸 JSON 数组**（`[...]`），会报「请检查是否为 JSON Lines 格式」。请使用：
+
+1. `SRTP/scripts/cmekg_import_ready.json` — `{ "medicines": [...] }` 包装对象（推荐，与种子数据同结构）
+2. `SRTP/scripts/cmekg_import_ready.jsonl` — JSON Lines，每行一条记录
+
+在微信云开发控制台打开集合 `cme_kg_medicines`，导入上述文件之一。
+为 `name` 建唯一索引、`aliases` 建普通索引（参考 `scripts/initDatabase.js`）。
 
 ## 5. 复核与性能
 

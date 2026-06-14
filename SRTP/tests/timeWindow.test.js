@@ -42,3 +42,24 @@ test('非法输入安全返回 false', () => {
   assert.strictEqual(isTimeWithinWindow('8-00', 8, 0, 7), false);
   assert.strictEqual(isTimeWithinWindow(null, 8, 0, 7), false);
 });
+
+test('恰好在边界处（差值 == windowMinutes）判定为 true', () => {
+  assert.strictEqual(isTimeWithinWindow('08:07', 8, 0, 7), true);
+  assert.strictEqual(isTimeWithinWindow('07:53', 8, 0, 7), true);
+});
+
+test('超出边界一分钟判定为 false', () => {
+  assert.strictEqual(isTimeWithinWindow('08:08', 8, 0, 7), false);
+  assert.strictEqual(isTimeWithinWindow('07:52', 8, 0, 7), false);
+});
+
+test('窗口为 0 时仅精确匹配', () => {
+  assert.strictEqual(isTimeWithinWindow('08:00', 8, 0, 0), true);
+  assert.strictEqual(isTimeWithinWindow('08:01', 8, 0, 0), false);
+});
+
+test('buildCandidateTimes 窗口为 0 时只包含当前时刻', () => {
+  const list = buildCandidateTimes(12, 30, 0);
+  assert.strictEqual(list.length, 1);
+  assert.strictEqual(list[0], '12:30');
+});

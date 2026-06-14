@@ -17,6 +17,8 @@ project.private.config.json
 
 # ETL 生成产物（由 cmekgEtl.js 生成，按需导入云库后无需入库）
 SRTP/scripts/cmekg_seed_data.generated.json
+SRTP/scripts/cmekg_import_ready.json
+SRTP/scripts/cmekg_import_ready.jsonl
 
 # 日志与系统文件
 *.log

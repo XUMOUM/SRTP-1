@@ -73,10 +73,9 @@
 
 | 用例ID | 用户状态 | 预期行为 | 通过标准 |
 |--------|---------|---------|---------|
-| SUB-001 | 有长期订阅权限 | 发送长期订阅消息 | 收到微信服务通知 |
-| SUB-002 | 无长期，有一次性授权 | 发送一次性订阅消息 | 收到微信服务通知 |
-| SUB-003 | 无任何授权 | 写入foregroundReminders | 前端震动+弹窗提醒 |
-| SUB-004 | 授权后打卡 | 索要下次用药授权 | 弹出订阅请求弹窗 |
+| SUB-001 | 有一次性授权 | 发送一次性订阅消息 | 收到微信服务通知 |
+| SUB-002 | 无任何授权 | 写入foregroundReminders | 前端震动+弹窗提醒 |
+| SUB-003 | 授权后打卡 | 索要下次用药授权 | 弹出订阅请求弹窗 |
 
 ### 2.3 准时率统计方法
 
@@ -87,7 +86,7 @@
 准时率 = 成功发送数 / 应发送总数 × 100%
 
 应发送总数 = 用户设置的用药时间点总数
-成功发送数 = type为long_term/one_time且sent=true的记录数
+成功发送数 = type为one_time且sent=true的记录数（含前台兜底计入准时率时需单独统计）
 ```
 
 **测试周期**：连续7天
@@ -106,7 +105,7 @@ medicines.forEach(med => {
 // 3. 查询实际发送成功数
 const logs = await db.collection('reminder_logs')
   .where({
-    type: _.in(['long_term', 'one_time']),
+    type: 'one_time',
     sent: true,
     sentTime: _.gte(new Date('2026-06-01'))
   })
@@ -275,7 +274,7 @@ async function calculateReminderRate(startDate, endDate) {
     .where({
       sentTime: _.gte(new Date(startDate)).and(_.lte(new Date(endDate))),
       sent: true,
-      type: _.in(['long_term', 'one_time'])
+      type: 'one_time'
     })
     .get();
   
@@ -330,7 +329,6 @@ async function calculateReminderRate(startDate, endDate) {
 | 指标 | 目标 | 实际 | 是否达标 |
 |------|------|------|---------|
 | 提醒准时率 | ≥85% | XX% | 是/否 |
-| 长期订阅成功率 | - | XX% | - |
 | 一次性订阅成功率 | - | XX% | - |
 | 前台兜底比例 | - | XX% | - |
 

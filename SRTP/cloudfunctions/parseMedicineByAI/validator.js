@@ -15,7 +15,7 @@ const MEDICINE_SCHEMA = {
   dosageNumber: {
     type: 'string',
     required: true,
-    pattern: /^[0-9.]+$/  // 纯数字或小数
+    pattern: /^[0-9]+(\.[0-9]+)?$/  // 必须以数字开头：整数或小数，拦截"."/"..."等幻觉值
   },
   dosageUnit: {
     type: 'string',
