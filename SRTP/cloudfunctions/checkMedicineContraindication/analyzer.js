@@ -3,6 +3,28 @@
  * 给定 CMeKG 图谱中某药品节点数据与用户画像，产出风险预警列表。
  */
 
+// 病史同义词组：CMeKG 与用户档案常用表述不一致时仍能匹配（如「消化性溃疡」vs「胃溃疡」）
+const DISEASE_SYNONYM_GROUPS = [
+  ['胃溃疡', '消化性溃疡', '消化道溃疡', '十二指肠溃疡', '胃十二指肠溃疡', '溃疡病'],
+  ['高血压', '血压偏高', '原发性高血压'],
+  ['糖尿病', '血糖升高', '高血糖', '糖尿'],
+  ['哮喘', '支气管哮喘'],
+  ['痛风', '高尿酸血症']
+];
+
+function diseasesMatch(userTerm, graphTerm) {
+  const u = String(userTerm).trim();
+  const g = String(graphTerm).trim();
+  if (!u || !g) return false;
+  if (u.includes(g) || g.includes(u)) return true;
+  for (const group of DISEASE_SYNONYM_GROUPS) {
+    const uHit = group.some(s => u.includes(s) || s.includes(u));
+    const gHit = group.some(s => g.includes(s) || s.includes(g));
+    if (uHit && gHit) return true;
+  }
+  return false;
+}
+
 /**
  * @param {Object} kgData - cme_kg_medicines 中的药品文档
  * @param {Object} profile - { currentMedicines: string[], userDiseases: string[], userAllergies: string[] }
@@ -21,7 +43,7 @@ function analyzeContraindications(kgData, profile) {
   // 1. 个人病史禁忌
   if (kgData.contraindications && kgData.contraindications.diseases) {
     const diseaseConflicts = kgData.contraindications.diseases.filter(d =>
-      userDiseases.some(ud => ud.includes(d) || d.includes(ud))
+      userDiseases.some(ud => diseasesMatch(ud, d))
     );
     if (diseaseConflicts.length > 0) {
       warnings.push({
@@ -68,4 +90,4 @@ function analyzeContraindications(kgData, profile) {
   return warnings;
 }
 
-module.exports = { analyzeContraindications };
+module.exports = { analyzeContraindications, diseasesMatch };

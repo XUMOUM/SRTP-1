@@ -80,13 +80,56 @@ node cmekgEtl.js
 
 ## 4. 导入云数据库
 
-微信云开发**不接受裸 JSON 数组**（`[...]`），会报「请检查是否为 JSON Lines 格式」。请使用：
+微信云开发控制台导入时，**每条记录必须是顶层独立文档**（顶层有 `name` 字段）。
+以下格式会导致只导入 **1 条**错误记录，切勿使用：
 
-1. `SRTP/scripts/cmekg_import_ready.json` — `{ "medicines": [...] }` 包装对象（推荐，与种子数据同结构）
-2. `SRTP/scripts/cmekg_import_ready.jsonl` — JSON Lines，每行一条记录
+- ❌ `cmekg_import_ready.json` — `{ "medicines": [...] }` 会被当成单条文档
+- ❌ 裸 JSON 数组 `[...]`
 
-在微信云开发控制台打开集合 `cme_kg_medicines`，导入上述文件之一。
+### 4.1 生成可导入文件
+
+在 `SRTP/scripts` 目录执行：
+
+```bash
+# 全量（自动按 name 去重，约 4593 条，原 ETL 有重复药名）
+node prepareCmekgImport.js full
+
+# 或分片导入（每文件 500 条）
+node prepareCmekgImport.js full --chunks
+```
+
+生成文件：
+
+| 文件 | 说明 |
+|------|------|
+| `cmekg_full_import.jsonl` | 全量单文件，已去重，每行一条 JSON |
+| `cmekg_chunk_001.jsonl` … | 分片导入备用 |
+
+> 扩展名 `.jsonl` 表示 JSON Lines（每行一条）。微信控制台导入时类型仍选 **JSON**；若文件选择器只显示 `.json`，复制文件改扩展名即可，内容不变。
+
+### 4.2 控制台导入步骤
+
+1. 云开发控制台 → **数据库** → `cme_kg_medicines`
+2. **清空集合**（删除此前导入失败残留的记录，如已导入的 9 条）
+3. 点击 **导入** → 文件类型选 **JSON** → 冲突模式 **Insert**
+4. 选择 `cmekg_full_import.jsonl`（或分片文件；选择器只认 `.json` 时可改扩展名）
+
+### 4.3 导入后验证
+
+- 记录总数应为 **约 4593**（去重后，不是 5183 也不是 1）
+- 随机点开一条，顶层应有 `name`、`contraindications` 等字段
+- 搜索 `name` 含「阿莫西林」应能查到记录
+
 为 `name` 建唯一索引、`aliases` 建普通索引（参考 `scripts/initDatabase.js`）。
+
+### 4.4 演示/答辩快速导入（可选）
+
+仅需验证禁忌功能时，可只导入 38 条种子数据：
+
+```bash
+node prepareCmekgImport.js seed
+# → cmekg_seed_import.json
+```
 
 ## 5. 复核与性能
 

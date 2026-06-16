@@ -460,12 +460,12 @@ Page({
   // 获取内置铃声路径
   getBuiltinRingtonePath: function(ringtoneName) {
     const pathMap = {
-      '默认铃声': '/assets/audio/default.mp3',
-      '轻柔提示': '/assets/audio/soft.mp3',
-      '经典闹钟': '/assets/audio/alarm.mp3',
-      '自然声音': '/assets/audio/nature.mp3'
+      '默认铃声': '/packageAudio/assets/audio/default.wav',
+      '轻柔提示': '/packageAudio/assets/audio/soft.wav',
+      '经典闹钟': '/packageAudio/assets/audio/alarm.wav',
+      '自然声音': '/packageAudio/assets/audio/nature.wav'
     };
-    return pathMap[ringtoneName] || '/assets/audio/default.mp3';
+    return pathMap[ringtoneName] || '/packageAudio/assets/audio/default.wav';
   },
 
   // 删除自定义铃声

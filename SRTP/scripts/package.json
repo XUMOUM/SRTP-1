@@ -5,7 +5,10 @@
   "description": "SRTP 工具脚本（含 CMeKG 图谱 ETL）",
   "scripts": {
     "cmekg:probe": "node cmekgEtl.js --probe",
-    "cmekg:etl": "node cmekgEtl.js"
+    "cmekg:etl": "node cmekgEtl.js",
+    "cmekg:import:seed": "node prepareCmekgImport.js seed",
+    "cmekg:import:full": "node prepareCmekgImport.js full",
+    "cmekg:import:chunks": "node prepareCmekgImport.js full --chunks"
   },
   "dependencies": {
     "neo4j-driver": "^5.28.1"

@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "**/cmekg_*import*.json": "jsonl",
+    "**/cmekg_chunk_*.json": "jsonl"
+  }
+}

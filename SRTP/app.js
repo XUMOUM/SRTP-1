@@ -340,13 +340,13 @@ navigateToLockScreen() {
     
     // 获取铃声路径
     const pathMap = {
-      '默认铃声': '/packageAudio/assets/audio/default.mp3',
-      '轻柔提示': '/packageAudio/assets/audio/soft.mp3',
-      '经典闹钟': '/packageAudio/assets/audio/alarm.mp3',
-      '自然声音': '/packageAudio/assets/audio/nature.mp3'
+      '默认铃声': '/packageAudio/assets/audio/default.wav',
+      '轻柔提示': '/packageAudio/assets/audio/soft.wav',
+      '经典闹钟': '/packageAudio/assets/audio/alarm.wav',
+      '自然声音': '/packageAudio/assets/audio/nature.wav'
     };
     
-    audioContext.src = pathMap[ringtoneName] || '/packageAudio/assets/audio/default.mp3';
+    audioContext.src = pathMap[ringtoneName] || '/packageAudio/assets/audio/default.wav';
     audioContext.loop = true;
     
     audioContext.onError((err) => {

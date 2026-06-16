@@ -15,10 +15,17 @@ project.private.config.json
 # 大体积二进制数据（如 CMeKG 图库 dump，体积大且不适合版本库）
 *.dump
 
-# ETL 生成产物（由 cmekgEtl.js 生成，按需导入云库后无需入库）
+# ETL / 导入生成产物（由脚本生成，按需导入云库后无需入库）
 SRTP/scripts/cmekg_seed_data.generated.json
 SRTP/scripts/cmekg_import_ready.json
 SRTP/scripts/cmekg_import_ready.jsonl
+SRTP/scripts/cmekg_full_import.json
+SRTP/scripts/cmekg_full_import.jsonl
+SRTP/scripts/cmekg_seed_import.json
+SRTP/scripts/cmekg_chunk_*.json
+
+# 微信 npm 构建产物（npm install 后自动生成）
+SRTP/miniprogram_npm/
 
 # 日志与系统文件
 *.log

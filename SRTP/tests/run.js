@@ -14,6 +14,7 @@ require('./analyzer.test.js');
 require('./timeWindow.test.js');
 require('./imagePreprocess.test.js');
 require('./syncManager.test.js');
+require('./medicineResolve.test.js');
 
 (async () => {
   let passed = 0;

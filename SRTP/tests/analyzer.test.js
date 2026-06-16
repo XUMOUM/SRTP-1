@@ -76,3 +76,16 @@ test('kgData 无 contraindications 字段时不抛出异常', () => {
   const w = analyzeContraindications(noContraData, { userDiseases: ['胃溃疡'] });
   assert.deepStrictEqual(w, []);
 });
+
+test('胃溃疡 与 CMeKG 表述「消化性溃疡」同义词组命中', () => {
+  const aspirinEtl = {
+    name: '阿司匹林',
+    contraindications: {
+      diseases: ['消化性溃疡', '十二指肠溃疡'],
+      allergies: ['过敏']
+    },
+    interactions: []
+  };
+  const w = analyzeContraindications(aspirinEtl, { userDiseases: ['胃溃疡'] });
+  assert.ok(w.some(x => x.type === 'disease' && x.level === '高危'));
+});

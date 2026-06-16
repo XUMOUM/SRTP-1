@@ -8,6 +8,32 @@ const _ = db.command
 
 // 禁忌匹配纯函数（已抽离，便于单元测试）
 const { analyzeContraindications } = require('./analyzer.js')
+const { buildLookupNames, pickBestMedicine } = require('./medicineResolve.js')
+
+async function lookupMedicine(db, queryName) {
+  const namesToTry = buildLookupNames(queryName)
+
+  for (const q of namesToTry) {
+    const exactRes = await db.collection('cme_kg_medicines').where({ name: q }).limit(1).get()
+    if (exactRes.data.length > 0) {
+      return exactRes.data[0]
+    }
+
+    const aliasRes = await db.collection('cme_kg_medicines').where({ aliases: q }).limit(1).get()
+    if (aliasRes.data.length > 0) {
+      return aliasRes.data[0]
+    }
+
+    const fuzzyRes = await db.collection('cme_kg_medicines').where({
+      name: db.RegExp({ regexp: q, options: 'i' })
+    }).limit(20).get()
+
+    const best = pickBestMedicine(fuzzyRes.data, queryName)
+    if (best) return best
+  }
+
+  return null
+}
 
 // 云函数入口函数
 exports.main = async (event, context) => {
@@ -15,14 +41,11 @@ exports.main = async (event, context) => {
   const { newMedicineName, currentMedicines = [], userDiseases = [], userAllergies = [] } = event
 
   try {
-    // 1. 图谱检索：在 CMeKG 集合中寻找准备添加的“新药”
-    const medRes = await db.collection('cme_kg_medicines').where(_.or([
-      { name: db.RegExp({ regexp: newMedicineName, options: 'i' }) }, 
-      { aliases: newMedicineName } 
-    ])).get()
+    // 1. 图谱检索：原药名 → 剥离剂型后的核心名（如 阿司匹林肠溶片 → 阿司匹林）
+    const kgData = await lookupMedicine(db, newMedicineName)
 
     // 如果图谱里没这个药，直接放行
-    if (medRes.data.length === 0) {
+    if (!kgData) {
       return { 
         code: 0, 
         hasWarning: false, 
@@ -30,8 +53,6 @@ exports.main = async (event, context) => {
         warnings: [] 
       }
     }
-
-    const kgData = medRes.data[0]
 
     // 2. 风险研判（病史禁忌 / 过敏史 / 同服相互作用）
     const warnings = analyzeContraindications(kgData, {

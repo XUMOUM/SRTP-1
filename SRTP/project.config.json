@@ -4,7 +4,7 @@
     "postcss": true,
     "minified": true,
     "uglifyFileName": false,
-    "enhance": true,
+    "enhance": false,
     "packNpmRelationList": [],
     "babelSetting": {
       "ignore": [],
@@ -15,7 +15,13 @@
     "minifyWXML": true,
     "compileWorklet": false,
     "uploadWithSourceMap": true,
-    "packNpmManually": false,
+    "packNpmManually": true,
+    "packNpmRelationList": [
+      {
+        "packageJsonPath": "./package.json",
+        "miniprogramNpmDistDir": "./"
+      }
+    ],
     "minifyWXSS": true,
     "localPlugins": false,
     "disableUseStrict": false,
@@ -27,7 +33,18 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "tests" },
+      { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": "cloudfunctions" },
+      { "type": "folder", "value": "node_modules" },
+      { "type": "file", "value": "cmekg_seed_data.json" },
+      { "type": "suffix", "value": ".md" },
+      { "type": "suffix", "value": ".jsonl" },
+      { "type": "glob", "value": "**/*.mp3" },
+      { "type": "glob", "value": "**/package-lock.json" }
+    ],
     "include": []
   },
   "appid": "wx8ec22bb8918ab153",

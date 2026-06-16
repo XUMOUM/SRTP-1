@@ -7,11 +7,6 @@
   ],
   "subPackages": [
     {
-      "root": "packageAudio",
-      "pages": [],
-      "independent": true
-    },
-    {
       "root": "packageA",
       "pages": [
         "pages/reminder-settings/reminder-settings",

@@ -1,0 +1,12 @@
+{
+  "name": "srtp-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SRTP 微信小程序（@babel/runtime 供按需注入与 ES6 编译）",
+  "scripts": {
+    "postinstall": "node scripts/setup-miniprogram-npm.js"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.26.0"
+  }
+}
