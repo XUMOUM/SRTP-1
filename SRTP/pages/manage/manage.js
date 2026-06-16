@@ -352,16 +352,10 @@ Page({
           data: { img_data: imageBase64, data_type: 2, ocr_type: 8 },
           success: (ocrRes) => {
             wx.hideLoading();
-            let text = '';
-            try {
-              const resultData = JSON.parse(ocrRes.data);
-              if (resultData.text_detections) {
-                text = resultData.text_detections.map(item => item.detected_text).join('\n');
-              } else {
-                text = JSON.stringify(resultData, null, 2);
-              }
-            } catch (e) {
-              text = JSON.stringify(ocrRes, null, 2);
+            const text = this.extractOcrText(ocrRes);
+            if (!text) {
+              wx.showToast({ title: '未识别到文字，请重拍', icon: 'none' });
+              return;
             }
             this.setData({ showOCRModal: true, ocrResultText: text });
           },
@@ -372,6 +366,58 @@ Page({
         });
       }
     });
+  },
+
+  /**
+   * 从 OCR 返回结果中稳健提取纯文本
+   * 兼容多种返回结构：
+   *   - data.ocr_comm_res.items[].text        （OcrAllInOne 通用印刷体）
+   *   - data.text_detections[].detected_text  （旧版/其他 OCR）
+   *   - data.items[].text / data.words_result[].words 等常见变体
+   * data 可能是字符串(JSON)或已解析对象，均做兼容。
+   * 关键：绝不把整个 JSON 原样作为识别文本返回，避免文本超长。
+   */
+  extractOcrText: function(ocrRes) {
+    let data = ocrRes && ocrRes.data !== undefined ? ocrRes.data : ocrRes;
+
+    // data 若是 JSON 字符串则先解析
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) {
+        // 不是 JSON，直接当作纯文本返回（截断保护）
+        return data.slice(0, 4000).trim();
+      }
+    }
+
+    if (!data || typeof data !== 'object') return '';
+
+    const lines = [];
+    const pushText = (v) => {
+      if (typeof v === 'string' && v.trim()) lines.push(v.trim());
+    };
+
+    // 1) OcrAllInOne 通用印刷体：ocr_comm_res.items[].text
+    if (data.ocr_comm_res && Array.isArray(data.ocr_comm_res.items)) {
+      data.ocr_comm_res.items.forEach(it => pushText(it && it.text));
+    }
+    // 2) 部分版本直接是 items[].text
+    if (lines.length === 0 && Array.isArray(data.items)) {
+      data.items.forEach(it => pushText(it && (it.text || it.detected_text)));
+    }
+    // 3) 旧版 text_detections[].detected_text
+    if (lines.length === 0 && Array.isArray(data.text_detections)) {
+      data.text_detections.forEach(it => pushText(it && it.detected_text));
+    }
+    // 4) 百度系 words_result[].words
+    if (lines.length === 0 && Array.isArray(data.words_result)) {
+      data.words_result.forEach(it => pushText(it && it.words));
+    }
+
+    let text = lines.join('\n').trim();
+    // 截断保护：远小于云函数 5000 上限，避免超长
+    if (text.length > 4000) text = text.slice(0, 4000);
+    return text;
   },
 
   hideOCRModal: function() {
