@@ -525,62 +525,224 @@ Page({
   },
 
   /**
-   * 添加所有解析的药品
+   * 获取健康档案（禁忌分析用）
    */
-  addAllMedicines: function() {
-    const medicines = this.data.parsedMedicines;
-    if (!medicines || medicines.length === 0) return;
+  getUserHealthContext: function() {
+    var healthProfile = wx.getStorageSync('healthProfile') || {};
+    var userDiseases = (healthProfile.chronicDiseases || []).concat(
+      healthProfile.specialStatusName && healthProfile.specialStatusName !== '无特殊'
+        ? [healthProfile.specialStatusName]
+        : []
+    );
+    var userAllergies = healthProfile.allergies || [];
+    return { userDiseases: userDiseases, userAllergies: userAllergies };
+  },
 
-    let addedCount = 0;
-    let currentMedicineList = this.data.medicineList;
+  /**
+   * 调用禁忌分析云函数（Promise 封装）
+   */
+  callContraindicationCheck: function(newMedicineName, currentMedicines, userDiseases, userAllergies) {
+    return new Promise(function(resolve, reject) {
+      wx.cloud.callFunction({
+        name: 'checkMedicineContraindication',
+        data: {
+          newMedicineName: newMedicineName,
+          currentMedicines: currentMedicines,
+          userDiseases: userDiseases,
+          userAllergies: userAllergies
+        },
+        success: function(res) { resolve(res.result || {}); },
+        fail: reject
+      });
+    });
+  },
 
-    medicines.forEach(med => {
-      // 跳过有校验错误的
+  /** 格式化禁忌预警文案 */
+  formatContraindicationAlert: function(warnings) {
+    var alertMsg = '';
+    warnings.forEach(function(w, index) {
+      var medPrefix = w.medicineName ? '【' + w.medicineName + '】' : '';
+      alertMsg += (index + 1) + '. ' + medPrefix + '【' + w.level + '】' + w.title + '：\n' + w.detail + '\n\n';
+    });
+    return alertMsg;
+  },
+
+  /**
+   * 批量药品禁忌检测（同批新增药品也会纳入相互作用检查）
+   */
+  checkMedicinesSafety: function(medicinesToCheck, baseMedicineList) {
+    var self = this;
+    var health = this.getUserHealthContext();
+    var existingNames = baseMedicineList.map(function(item) { return item.name; });
+    var state = { aggregatedWarnings: [], checkFailed: false };
+
+    var chain = Promise.resolve();
+    medicinesToCheck.forEach(function(med, index) {
+      chain = chain.then(function() {
+        var currentForCheck = existingNames.concat(
+          medicinesToCheck.slice(0, index).map(function(m) { return m.name; })
+        );
+        return self.callContraindicationCheck(
+          med.name,
+          currentForCheck,
+          health.userDiseases,
+          health.userAllergies
+        ).then(function(result) {
+          if (result && result.hasWarning && result.warnings) {
+            result.warnings.forEach(function(w) {
+              state.aggregatedWarnings.push({
+                level: w.level,
+                title: w.title,
+                detail: w.detail,
+                medicineName: med.name
+              });
+            });
+          }
+        }).catch(function(err) {
+          console.error('[manage] 安全检测失败', med.name, err);
+          state.checkFailed = true;
+        });
+      });
+    });
+
+    return chain.then(function() { return state; });
+  },
+
+  /**
+   * 展示禁忌预警弹窗，确认后执行 callback
+   */
+  confirmAfterSafetyCheck: function(options) {
+    var warnings = options.warnings || [];
+    var checkFailed = options.checkFailed;
+    var onConfirm = options.onConfirm;
+
+    if (checkFailed && warnings.length === 0) {
+      wx.showModal({
+        title: '安全检测失败',
+        content: '无法连接到云端进行安全检测，是否继续添加？',
+        success: function(modalRes) {
+          if (modalRes.confirm) onConfirm();
+        }
+      });
+      return;
+    }
+
+    if (warnings.length > 0) {
+      wx.showModal({
+        title: '⚠️ 用药安全预警',
+        content: this.formatContraindicationAlert(warnings),
+        confirmText: '执意添加',
+        confirmColor: '#ff4d4f',
+        cancelText: '取消',
+        success: function(modalRes) {
+          if (modalRes.confirm) onConfirm();
+        }
+      });
+      return;
+    }
+
+    onConfirm();
+  },
+
+  /**
+   * 筛选待添加的 AI 解析药品（去重、跳过校验失败项）
+   */
+  collectParsedMedicinesToAdd: function(medicines, medicineList) {
+    var toAdd = [];
+    medicines.forEach(function(med) {
       if (med._hasValidationError) {
         console.warn('[manage] 跳过有校验错误的药品:', med._validationErrors);
         return;
       }
+      var exists = medicineList.some(function(item) {
+        return item.name === med.name && item.dosageNumber === med.dosageNumber;
+      });
+      if (!exists) toAdd.push(med);
+    });
+    return toAdd;
+  },
 
-      // 检查是否已存在
-      const exists = currentMedicineList.some(item => 
-        item.name === med.name && 
-        item.dosageNumber === med.dosageNumber
-      );
+  /**
+   * 执行 AI 解析结果的批量添加（含云端同步）
+   */
+  executeAddParsedMedicines: function(medicinesToAdd, medicineList) {
+    var addedCount = 0;
+    var nextId = medicineList.length > 0
+      ? Math.max.apply(Math, medicineList.map(function(m) { return m.id; })) + 1
+      : 1;
 
-      if (!exists) {
-        const newId = currentMedicineList.length > 0 
-          ? Math.max(...currentMedicineList.map(m => m.id)) + 1 
-          : 1;
+    medicinesToAdd.forEach(function(med) {
+      var frequencyNum = parseInt(med.frequency, 10) || 1;
+      var medicineToSave = {
+        id: nextId,
+        name: med.name,
+        dosageNumber: med.dosageNumber,
+        dosageUnit: med.dosageUnit,
+        instruction: med.instruction || '无特殊要求',
+        times: med.times || ['08:00'],
+        frequency: frequencyNum.toString(),
+        frequencyDisplay: frequencyNum + '次/日',
+        notes: med.notes || '',
+        createTime: Date.now()
+      };
+      nextId++;
+      medicineList.push(medicineToSave);
+      addedCount++;
 
-        const frequencyNum = parseInt(med.frequency) || 1;
-
-        currentMedicineList.push({
-          id: newId,
-          name: med.name,
-          dosageNumber: med.dosageNumber,
-          dosageUnit: med.dosageUnit,
-          instruction: med.instruction || '无特殊要求',
-          times: med.times || ['08:00'],
-          frequency: frequencyNum.toString(),
-          frequencyDisplay: frequencyNum + '次/日',
-          notes: med.notes || ''
-        });
-
-        addedCount++;
-      }
+      syncManager.write('medicine_' + medicineToSave.id, medicineToSave).then(function() {
+        console.log('[manage] AI添加药品已同步到云端:', medicineToSave.name);
+      }).catch(function(err) {
+        console.warn('[manage] 云端同步失败（将重试）:', err);
+      });
     });
 
-    // 保存
-    this.saveMedicineList(currentMedicineList);
+    this.saveMedicineList(medicineList);
     this.hideParsedModal();
+    wx.showToast({ title: '已添加' + addedCount + '种药品', icon: 'success' });
+  },
 
-    wx.showToast({ 
-      title: `已添加${addedCount}种药品`, 
-      icon: 'success' 
+  /**
+   * 添加所有解析的药品（与手动添加一致，先走禁忌分析）
+   */
+  addAllMedicines: function() {
+    var medicines = this.data.parsedMedicines;
+    if (!medicines || medicines.length === 0) return;
+
+    var medicineList = this.data.medicineList;
+    var toAdd = this.collectParsedMedicinesToAdd(medicines, medicineList);
+
+    if (toAdd.length === 0) {
+      wx.showToast({ title: '没有可添加的药品', icon: 'none' });
+      return;
+    }
+
+    var self = this;
+    wx.showLoading({ title: '安全检测中...', mask: true });
+
+    this.checkMedicinesSafety(toAdd, medicineList).then(function(safetyResult) {
+      wx.hideLoading();
+      self.confirmAfterSafetyCheck({
+        warnings: safetyResult.aggregatedWarnings,
+        checkFailed: safetyResult.checkFailed,
+        onConfirm: function() {
+          self.executeAddParsedMedicines(toAdd, medicineList);
+        }
+      });
+    }).catch(function(err) {
+      wx.hideLoading();
+      console.error('[manage] 批量安全检测异常', err);
+      wx.showModal({
+        title: '安全检测失败',
+        content: '无法连接到云端进行安全检测，是否继续添加？',
+        success: function(modalRes) {
+          if (modalRes.confirm) {
+            self.executeAddParsedMedicines(toAdd, medicineList);
+          }
+        }
+      });
     });
   },
 
-  // ================= 编辑药品（修复数据回显） =================
 
   /**
    * 显示编辑弹窗（修复版：正确回显数据）
@@ -734,76 +896,50 @@ Page({
   addMedicine: function() {
     var medicine = this.data.currentMedicine;
 
-    // 基础校验
     if (!this.validateMedicine(medicine)) {
       return;
     }
 
     var medicineList = this.data.medicineList;
-
-    // 准备禁忌分析数据
-    var currentMedicines = medicineList.map(item => item.name);
-    var healthProfile = wx.getStorageSync('healthProfile') || {};
-    var userDiseases = (healthProfile.chronicDiseases || []).concat(
-      healthProfile.specialStatusName && healthProfile.specialStatusName !== '无特殊' 
-        ? [healthProfile.specialStatusName] 
-        : []
-    );
-    var userAllergies = healthProfile.allergies || [];
+    var currentMedicines = medicineList.map(function(item) { return item.name; });
+    var health = this.getUserHealthContext();
+    var self = this;
 
     wx.showLoading({ title: '安全检测中...', mask: true });
 
-    // 调用禁忌分析
-    wx.cloud.callFunction({
-      name: 'checkMedicineContraindication',
-      data: {
-        newMedicineName: medicine.name,
-        currentMedicines: currentMedicines,
-        userDiseases: userDiseases,
-        userAllergies: userAllergies
-      },
-      success: (res) => {
-        wx.hideLoading();
-        var result = res.result;
-
-        if (result && result.hasWarning) {
-          // 有警告，显示高危弹窗
-          var alertMsg = '';
-          result.warnings.forEach((w, index) => {
-            alertMsg += (index + 1) + '. 【' + w.level + '】' + w.title + '：\n' + w.detail + '\n\n';
-          });
-
-          wx.showModal({
-            title: '⚠️ 用药安全预警',
-            content: alertMsg,
-            confirmText: '执意添加',
-            confirmColor: '#ff4d4f',
-            cancelText: '取消',
-            success: (modalRes) => {
-              if (modalRes.confirm) {
-                this.executeAddMedicine(medicine, medicineList);
-              }
-            }
-          });
-        } else {
-          // 无冲突，直接添加
-          this.executeAddMedicine(medicine, medicineList);
+    this.callContraindicationCheck(
+      medicine.name,
+      currentMedicines,
+      health.userDiseases,
+      health.userAllergies
+    ).then(function(result) {
+      wx.hideLoading();
+      self.confirmAfterSafetyCheck({
+        warnings: (result && result.hasWarning && result.warnings)
+          ? result.warnings.map(function(w) {
+              return {
+                level: w.level,
+                title: w.title,
+                detail: w.detail,
+                medicineName: medicine.name
+              };
+            })
+          : [],
+        checkFailed: false,
+        onConfirm: function() {
+          self.executeAddMedicine(medicine, medicineList);
         }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.error('安全检测失败', err);
-        // 网络失败时允许用户继续
-        wx.showModal({
-          title: '安全检测失败',
-          content: '无法连接到云端进行安全检测，是否继续添加？',
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              this.executeAddMedicine(medicine, medicineList);
-            }
-          }
-        });
-      }
+      });
+    }).catch(function(err) {
+      wx.hideLoading();
+      console.error('安全检测失败', err);
+      self.confirmAfterSafetyCheck({
+        warnings: [],
+        checkFailed: true,
+        onConfirm: function() {
+          self.executeAddMedicine(medicine, medicineList);
+        }
+      });
     });
   },
 
